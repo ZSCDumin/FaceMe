@@ -52,9 +52,9 @@ public final class FaceManager {
     }
 
     public static FaceManager getFace() {
-        if(null == face){
+        if(face == null){
             synchronized (FaceManager.class){
-                if(null == face){
+                if(face == null){
                     face = new FaceManager();
                 }
             }
