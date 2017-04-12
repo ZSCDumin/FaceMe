@@ -1,5 +1,6 @@
 package cn.iome.faceme.util;
 
+import android.os.Handler;
 import android.util.Log;
 
 import com.baidu.aip.face.AipFace;
@@ -15,6 +16,7 @@ import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import cn.iome.faceme.BuildConfig;
 import cn.iome.faceme.Constants;
 import cn.iome.faceme.bean.FaceResultBean;
 import cn.iome.faceme.bean.FaceUserBean;
@@ -29,29 +31,38 @@ import cn.iome.faceme.bean.RecognizeEachBean;
  * Created by haoping on 17/4/8.
  * 百度人脸识别工具类
  */
-public class FaceUtil {
+public final class FaceManager {
 
-    private static final String TAG = FaceUtil.class.getSimpleName();
-    private static FaceUtil faceUtil = new FaceUtil();
+    private static final String TAG = FaceManager.class.getSimpleName();
+    private static FaceManager face;
     private final ExecutorService threadPool;
     private final AipFace client;
     private final Gson gson;
+    private final Handler handler;
 
-    private FaceUtil() {
+    private FaceManager() {
         // 初始化一个FaceClient
         client = new AipFace(Constants.APP_ID, Constants.API_KEY, Constants.SECRET_KEY);
         // 可选：设置网络连接参数
         client.setConnectionTimeoutInMillis(2000);//建立连接的超时时间（单位：毫秒）
         client.setSocketTimeoutInMillis(60000);//通过打开的连接传输数据的超时时间（单位：毫秒）
-        threadPool = Executors.newFixedThreadPool(3);
+        threadPool = Executors.newSingleThreadExecutor();
         gson = new Gson();
+        handler = new Handler();
     }
 
-    public static FaceUtil getFace() {
-        return faceUtil;
+    public static FaceManager getFace() {
+        if(null == face){
+            synchronized (FaceManager.class){
+                if(null == face){
+                    face = new FaceManager();
+                }
+            }
+        }
+        return face;
     }
 
-    public interface Callback<T>{
+    public interface Callback<T> {
         void apply(T t);
     }
 
@@ -62,12 +73,20 @@ public class FaceUtil {
         threadPool.execute(new Runnable() {
             @Override
             public void run() {
-                try {
-                    JSONObject res = client.detect(imagePath, new HashMap<String, String>());
-                    callback.apply(gson.fromJson(res.toString(), QuickBean.class));
-                    Log.i(TAG, "quick: " + res.toString(2));
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                final JSONObject res = client.detect(imagePath, new HashMap<String, String>());
+                final QuickBean quickBean = gson.fromJson(res.toString(), QuickBean.class);
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.apply(quickBean);
+                    }
+                });
+                if(BuildConfig.DEBUG){
+                    try {
+                        Log.i(TAG, "quick: " + res.toString(2));
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         });
@@ -80,9 +99,9 @@ public class FaceUtil {
         threadPool.execute(new Runnable() {
             @Override
             public void run() {
+                // 参数为本地图片路径
+                JSONObject response = client.detect(imagePath, new HashMap<String, String>());
                 try {
-                    // 参数为本地图片路径
-                    JSONObject response = client.detect(imagePath, new HashMap<String, String>());
                     Log.i(TAG, "faceRecognize-response: " + response.toString(2));
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -163,6 +182,7 @@ public class FaceUtil {
      * ++type	            object	    是	        真实人脸/卡通人脸置信度
      * +++human	            double	    是	        真实人脸置信度，[0, 1]
      * +++cartoon	        double	    是	        卡通人脸置信度，[0, 1]
+     *
      * @param path    图片路径
      * @param options 自定义参数
      */
@@ -170,13 +190,21 @@ public class FaceUtil {
         threadPool.execute(new Runnable() {
             @Override
             public void run() {
-                try {
-                    // 参数为本地图片路径
-                    JSONObject response = client.detect(path, options);
-                    callback.apply(gson.fromJson(response.toString(), RecognizeBean.class));
-                    Log.i(TAG, "faceRecognizeWithPath: " + response.toString(2));
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                // 参数为本地图片路径
+                final JSONObject response = client.detect(path, options);
+                final RecognizeBean recognizeBean = gson.fromJson(response.toString(), RecognizeBean.class);
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.apply(recognizeBean);
+                    }
+                });
+                if (BuildConfig.DEBUG) {
+                    try {
+                        Log.i(TAG, "faceRecognizeWithPath: " + response.toString(2));
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         });
@@ -239,6 +267,7 @@ public class FaceUtil {
      * ++type	            object	    是	        真实人脸/卡通人脸置信度
      * +++human	            double	    是	        真实人脸置信度，[0, 1]
      * +++cartoon	        double	    是	        卡通人脸置信度，[0, 1]
+     *
      * @param Bytes   图片二进制数组
      * @param options 自定义参数
      */
@@ -246,12 +275,20 @@ public class FaceUtil {
         threadPool.execute(new Runnable() {
             @Override
             public void run() {
-                try {
-                    JSONObject response = client.detect(Bytes, options);
-                    callback.apply(gson.fromJson(response.toString(), RecognizeBean.class));
-                    Log.i(TAG, "faceRecognizeWithBytes: " + response.toString(2));
-                } catch (Exception e) {
-                    e.printStackTrace();
+                final JSONObject response = client.detect(Bytes, options);
+                final RecognizeBean recognizeBean = gson.fromJson(response.toString(), RecognizeBean.class);
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.apply(recognizeBean);
+                    }
+                });
+                if (BuildConfig.DEBUG) {
+                    try {
+                        Log.i(TAG, "faceRecognizeWithBytes: " + response.toString(2));
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         });
@@ -272,18 +309,27 @@ public class FaceUtil {
      * +index_i	    是	uint32	        比对图片1的index
      * +index_j	    是	uint32	        比对图片2的index
      * +score	    是	double	        比对得分
+     *
      * @param pathArray 本地图片路径集合
      */
     public void faceRecognizeEach(final ArrayList<String> pathArray, final Callback<RecognizeEachBean> callback) {
         threadPool.execute(new Runnable() {
             @Override
             public void run() {
-                try {
-                    JSONObject response = client.match(pathArray);
-                    callback.apply(gson.fromJson(response.toString(), RecognizeEachBean.class));
-                    Log.i(TAG, "faceRecognizeEach: " + response.toString(2));
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                final JSONObject response = client.match(pathArray);
+                final RecognizeEachBean recognizeEachBean = gson.fromJson(response.toString(), RecognizeEachBean.class);
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.apply(recognizeEachBean);
+                    }
+                });
+                if (BuildConfig.DEBUG) {
+                    try {
+                        Log.i(TAG, "faceRecognizeEach: " + response.toString(2));
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         });
@@ -300,14 +346,15 @@ public class FaceUtil {
      * 返回样例：
      * // 注册成功
      * {
-     *      "log_id": 73473737,
+     * "log_id": 73473737,
      * }
      * // 注册发生错误
      * {
-     *      "error_code": 216616,
-     *      "log_id": 674786177,
-     *      "error_msg": "image exist"
+     * "error_code": 216616,
+     * "log_id": 674786177,
+     * "error_msg": "image exist"
      * }
+     *
      * @param uid      用户ID
      * @param userInfo 用户信息
      * @param groupId  用户需要添加组
@@ -317,12 +364,20 @@ public class FaceUtil {
         threadPool.execute(new Runnable() {
             @Override
             public void run() {
-                try {
-                    JSONObject res = client.addUser(uid, userInfo, groupId, imgPaths);
-                    callback.apply(gson.fromJson(res.toString(), FaceResultBean.class));
-                    Log.i(TAG, "facesetAddUser: " + res.toString(2));
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                final JSONObject res = client.addUser(uid, userInfo, groupId, imgPaths);
+                final FaceResultBean faceResultBean = gson.fromJson(res.toString(), FaceResultBean.class);
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.apply(faceResultBean);
+                    }
+                });
+                if (BuildConfig.DEBUG) {
+                    try {
+                        Log.i(TAG, "facesetAddUser: " + res.toString(2));
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         });
@@ -337,14 +392,15 @@ public class FaceUtil {
      * 返回样例：
      * // 更新成功
      * {
-     *      "log_id": 73473737,
+     * "log_id": 73473737,
      * }
      * // 更新发生错误
      * {
-     *      "error_code": 216612,
-     *      "log_id": 1137508902,
-     *      "error_msg": "user not exist"
+     * "error_code": 216612,
+     * "log_id": 1137508902,
+     * "error_msg": "user not exist"
      * }
+     *
      * @param uid  用户ID
      * @param path 用户头像集合
      */
@@ -352,12 +408,20 @@ public class FaceUtil {
         threadPool.execute(new Runnable() {
             @Override
             public void run() {
-                try {
-                    JSONObject res = client.updateUser(uid, path);
-                    callback.apply(gson.fromJson(res.toString(), FaceResultBean.class));
-                    Log.i(TAG, "facesetUpdateUser: " + res.toString(2));
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                final JSONObject res = client.updateUser(uid, path);
+                final FaceResultBean faceResultBean = gson.fromJson(res.toString(), FaceResultBean.class);
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.apply(faceResultBean);
+                    }
+                });
+                if (BuildConfig.DEBUG) {
+                    try {
+                        Log.i(TAG, "facesetUpdateUser: " + res.toString(2));
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         });
@@ -368,26 +432,35 @@ public class FaceUtil {
      * 人脸删除:人脸删除接口提供了从库中彻底删除一个用户的功能，包括用户所有图像和身份信息，同时也将从各个组中把用户删除。
      * 更新成功
      * {
-            "log_id": 73473737,
+     * "log_id": 73473737,
      * }
      * // 更新发生错误
      * {
-     *      "error_code": 216612,
-     *      "log_id": 1137508902,
-     *      "error_msg": "user not exist"
+     * "error_code": 216612,
+     * "log_id": 1137508902,
+     * "error_msg": "user not exist"
      * }
+     *
      * @param uid 用户ID
      */
     public void facesetDeleteUser(final String uid, final Callback<FaceResultBean> callback) {
         threadPool.execute(new Runnable() {
             @Override
             public void run() {
-                try {
-                    JSONObject res = client.deleteUser(uid);
-                    callback.apply(gson.fromJson(res.toString(), FaceResultBean.class));
-                    Log.i(TAG, "facesetDeleteUser: " + res.toString(2));
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                final JSONObject res = client.deleteUser(uid);
+                final FaceResultBean faceResultBean = gson.fromJson(res.toString(), FaceResultBean.class);
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.apply(faceResultBean);
+                    }
+                });
+                if (BuildConfig.DEBUG) {
+                    try {
+                        Log.i(TAG, "facesetDeleteUser: " + res.toString(2));
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         });
@@ -412,13 +485,14 @@ public class FaceUtil {
      * result	    是	    array(double)	结果数组，数组元素为匹配得分，top n。 得分范围[0,100.0]。得分超过80可认为认证成功
      * 返回样例：
      * {
-     *      "results": [
-     *          93.86580657959,
-     *          92.237548828125
-     *      ],
-     *      "result_num": 2,
-     *      "log_id": 1629483134
+     * "results": [
+     * 93.86580657959,
+     * 92.237548828125
+     * ],
+     * "result_num": 2,
+     * "log_id": 1629483134
      * }
+     *
      * @param uid     用户ID
      * @param path    用户头像集合
      * @param options 用户认证参数
@@ -427,12 +501,20 @@ public class FaceUtil {
         threadPool.execute(new Runnable() {
             @Override
             public void run() {
-                try {
-                    JSONObject res = client.verifyUser(uid, path, options);
-                    callback.apply(gson.fromJson(res.toString(), FaceResultBean.class));
-                    Log.i(TAG, "verifyUser: " + res.toString(2));
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                final JSONObject res = client.verifyUser(uid, path, options);
+                final FaceResultBean faceResultBean = gson.fromJson(res.toString(), FaceResultBean.class);
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.apply(faceResultBean);
+                    }
+                });
+                if (BuildConfig.DEBUG) {
+                    try {
+                        Log.i(TAG, "verifyUser: " + res.toString(2));
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         });
@@ -460,20 +542,29 @@ public class FaceUtil {
      * +uid	        是	    string	        匹配到的用户id
      * +user_info	是	    string	        注册时的用户信息
      * +scores	    是	    array(double)	结果数组，数组元素为匹配得分，top n。 得分[0,100.0]
-     * @param uid     用户ID
+     *
+     * @param groupId 用户组ID
      * @param path    用户头像集合
      * @param options 用户认证参数
      */
-    public void identifyUser(final String uid, final ArrayList<String> path, final HashMap<String, Object> options, final Callback<IdentifyResultBean> callback) {
+    public void identifyUser(final String groupId, final ArrayList<String> path, final HashMap<String, Object> options, final Callback<IdentifyResultBean> callback) {
         threadPool.execute(new Runnable() {
             @Override
             public void run() {
-                try {
-                    JSONObject res = client.identifyUser(uid, path, options);
-                    callback.apply(gson.fromJson(res.toString(), IdentifyResultBean.class));
-                    Log.i(TAG, "identifyUser: " + res.toString(2));
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                final JSONObject res = client.identifyUser(groupId, path, options);
+                final IdentifyResultBean identifyResultBean = gson.fromJson(res.toString(), IdentifyResultBean.class);
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.apply(identifyResultBean);
+                    }
+                });
+                if (BuildConfig.DEBUG) {
+                    try {
+                        Log.i(TAG, "identifyUser: " + res.toString(2));
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         });
@@ -488,18 +579,27 @@ public class FaceUtil {
      * +uid	        是	string	        匹配到的用户id
      * +user_info	是	string	        注册时的用户信息
      * +groups	    是	array(string)	用户所属组列表
+     *
      * @param uid 用户ID
      */
     public void getUser(final String uid, final Callback<FaceUserBean> callback) {
         threadPool.execute(new Runnable() {
             @Override
             public void run() {
-                try {
-                    JSONObject res = client.getUser(uid);
-                    callback.apply(gson.fromJson(res.toString(), FaceUserBean.class));
-                    Log.i(TAG, "getUser: " + res.toString(2));
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                final JSONObject res = client.getUser(uid);
+                final FaceUserBean faceUserBean = gson.fromJson(res.toString(), FaceUserBean.class);
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.apply(faceUserBean);
+                    }
+                });
+                if (BuildConfig.DEBUG) {
+                    try {
+                        Log.i(TAG, "getUser: " + res.toString(2));
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         });
@@ -519,18 +619,27 @@ public class FaceUtil {
      * log_id	    是	    uint64	        请求标识码，随机数，唯一
      * result_num	是	    uint32	        返回个数
      * result	    是	    array(string)	group_id列表
+     *
      * @param options options
      */
     public void getGroupList(final HashMap<String, Object> options, final Callback<GroupListBean> callback) {
         threadPool.execute(new Runnable() {
             @Override
             public void run() {
-                try {
-                    JSONObject res = client.getGroupList(options);
-                    callback.apply(gson.fromJson(res.toString(), GroupListBean.class));
-                    Log.i(TAG, "getGroupList: " + res.toString(2));
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                final JSONObject res = client.getGroupList(options);
+                final GroupListBean groupListBean = gson.fromJson(res.toString(), GroupListBean.class);
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.apply(groupListBean);
+                    }
+                });
+                if (BuildConfig.DEBUG) {
+                    try {
+                        Log.i(TAG, "getGroupList: " + res.toString(2));
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         });
@@ -553,6 +662,7 @@ public class FaceUtil {
      * result	是	    array(object)	user列表
      * +uid	    是	    string	        用户id
      * +user_info	是	string	        用户信息
+     *
      * @param groupId 组ID
      * @param options options
      */
@@ -560,12 +670,20 @@ public class FaceUtil {
         threadPool.execute(new Runnable() {
             @Override
             public void run() {
-                try {
-                    JSONObject res = client.getGroupUsers(groupId, options);
-                    callback.apply(gson.fromJson(res.toString(), GroupUserBean.class));
-                    Log.i(TAG, "getGroupUsers: " + res.toString(2));
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                final JSONObject res = client.getGroupUsers(groupId, options);
+                final GroupUserBean groupUserBean = gson.fromJson(res.toString(), GroupUserBean.class);
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.apply(groupUserBean);
+                    }
+                });
+                if (BuildConfig.DEBUG) {
+                    try {
+                        Log.i(TAG, "getGroupUsers: " + res.toString(2));
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         });
@@ -581,12 +699,20 @@ public class FaceUtil {
         threadPool.execute(new Runnable() {
             @Override
             public void run() {
-                try {
-                    JSONObject res = client.addGroupUser(groupId, uid);
-                    callback.apply(gson.fromJson(res.toString(), FaceResultBean.class));
-                    Log.i(TAG, "addGroupUser: " + res.toString(2));
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                final JSONObject res = client.addGroupUser(groupId, uid);
+                final FaceResultBean faceResultBean = gson.fromJson(res.toString(), FaceResultBean.class);
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.apply(faceResultBean);
+                    }
+                });
+                if (BuildConfig.DEBUG) {
+                    try {
+                        Log.i(TAG, "addGroupUser: " + res.toString(2));
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         });
@@ -602,12 +728,20 @@ public class FaceUtil {
         threadPool.execute(new Runnable() {
             @Override
             public void run() {
-                try {
-                    JSONObject res = client.deleteGroupUser(groupId, uid);
-                    callback.apply(gson.fromJson(res.toString(), FaceResultBean.class));
-                    Log.i(TAG, "deleteGroupUser: " + res.toString(2));
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                final JSONObject res = client.deleteGroupUser(groupId, uid);
+                final FaceResultBean faceResultBean = gson.fromJson(res.toString(), FaceResultBean.class);
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.apply(faceResultBean);
+                    }
+                });
+                if (BuildConfig.DEBUG) {
+                    try {
+                        Log.i(TAG, "deleteGroupUser: " + res.toString(2));
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         });

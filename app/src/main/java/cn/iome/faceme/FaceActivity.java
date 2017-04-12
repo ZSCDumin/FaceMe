@@ -22,8 +22,8 @@ import cn.iome.faceme.bean.GroupUserBean;
 import cn.iome.faceme.bean.IdentifyResultBean;
 import cn.iome.faceme.bean.QuickBean;
 import cn.iome.faceme.bean.RecognizeBean;
-import cn.iome.faceme.util.FaceUtil;
-import cn.iome.faceme.util.FaceUtil.Callback;
+import cn.iome.faceme.util.FaceManager;
+import cn.iome.faceme.util.FaceManager.Callback;
 
 /**
  * Created by haoping on 17/4/10.
@@ -33,14 +33,14 @@ public class FaceActivity extends AppCompatActivity {
 
     private static final String TAG = FaceActivity.class.getSimpleName();
     private static final int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 1;
-    private FaceUtil face;
+    private FaceManager face;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         getPermission();
-        face = FaceUtil.getFace();
+        face = FaceManager.getFace();
     }
 
     public void quick(View view){
@@ -85,10 +85,10 @@ public class FaceActivity extends AppCompatActivity {
 
     public void facesetUpdateUser(View view){
         // 参数为本地图片路径
-        ArrayList<String> path = new ArrayList<>();
-        path.add(Constants.test1);
-        path.add(Constants.test2);
-        face.facesetUpdateUser("uid1", path, new Callback<FaceResultBean>() {
+        ArrayList<String> imgPaths = new ArrayList<>();
+        imgPaths.add(Constants.test1);
+        imgPaths.add(Constants.test2);
+        face.facesetUpdateUser("uid1", imgPaths, new Callback<FaceResultBean>() {
             @Override
             public void apply(FaceResultBean faceResultBean) {
                 Log.i(TAG, "apply: " + faceResultBean.toString());
@@ -126,7 +126,7 @@ public class FaceActivity extends AppCompatActivity {
         HashMap<String, Object> options = new HashMap<>(1);
         options.put("user_top_num", path.size());
         options.put("face_top_num", 10);
-        face.identifyUser("uid1", path, options, new Callback<IdentifyResultBean>() {
+        face.identifyUser("group1", path, options, new Callback<IdentifyResultBean>() {
             @Override
             public void apply(IdentifyResultBean identifyResultBean) {
                 Log.i(TAG, "apply: " + identifyResultBean.toString());

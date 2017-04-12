@@ -2,11 +2,11 @@ package cn.iome.faceme.bean;
 
 import java.util.List;
 
-import cn.iome.faceme.util.FaceUtil;
+import cn.iome.faceme.util.FaceManager;
 
 /**
  * Created by haoping on 17/4/10.
- * {@link FaceUtil#getUser(java.lang.String, FaceUtil.Callback)}
+ * {@link FaceManager#getUser(java.lang.String, FaceManager.Callback)}
  */
 public class FaceUserBean {
 
@@ -17,7 +17,7 @@ public class FaceUserBean {
      */
 
     private ResultBean result;
-    private int log_id;
+    private long log_id;
 
     public ResultBean getResult() {
         return result;
@@ -27,11 +27,11 @@ public class FaceUserBean {
         this.result = result;
     }
 
-    public int getLog_id() {
+    public long getLog_id() {
         return log_id;
     }
 
-    public void setLog_id(int log_id) {
+    public void setLog_id(long log_id) {
         this.log_id = log_id;
     }
 

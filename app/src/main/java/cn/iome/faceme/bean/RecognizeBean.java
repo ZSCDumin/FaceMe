@@ -2,12 +2,12 @@ package cn.iome.faceme.bean;
 
 import java.util.List;
 
-import cn.iome.faceme.util.FaceUtil;
+import cn.iome.faceme.util.FaceManager;
 
 /**
  * Created by haoping on 17/4/10.
- * {@link FaceUtil#faceRecognizeWithBytes(byte[], java.util.HashMap, FaceUtil.Callback)}
- * {@link FaceUtil#faceRecognizeWithPath(java.lang.String, java.util.HashMap, FaceUtil.Callback)}
+ * {@link FaceManager#faceRecognizeWithBytes(byte[], java.util.HashMap, FaceManager.Callback)}
+ * {@link FaceManager#faceRecognizeWithPath(java.lang.String, java.util.HashMap, FaceManager.Callback)}
  */
 public class RecognizeBean {
 

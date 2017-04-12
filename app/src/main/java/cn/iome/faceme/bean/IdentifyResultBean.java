@@ -2,12 +2,12 @@ package cn.iome.faceme.bean;
 
 import java.util.List;
 
-import cn.iome.faceme.util.FaceUtil;
+import cn.iome.faceme.util.FaceManager;
 
 /**
  * Created by haoping on 17/4/10.
- * {@link FaceUtil#identifyUser(java.lang.String, java.util.ArrayList, java.util.HashMap, FaceUtil.Callback)}
- * {@link FaceUtil#facesetDeleteUser(java.lang.String, FaceUtil.Callback)}
+ * {@link FaceManager#identifyUser(java.lang.String, java.util.ArrayList, java.util.HashMap, FaceManager.Callback)}
+ * {@link FaceManager#facesetDeleteUser(java.lang.String, FaceManager.Callback)}
  */
 public class IdentifyResultBean {
 
@@ -17,15 +17,15 @@ public class IdentifyResultBean {
      * result : [{"uid":"u333333","user_info":"Test User","scores":[99.3,83.4]}]
      */
 
-    private int log_id;
+    private long log_id;
     private int result_num;
     private List<ResultBean> result;
 
-    public int getLog_id() {
+    public long getLog_id() {
         return log_id;
     }
 
-    public void setLog_id(int log_id) {
+    public void setLog_id(long log_id) {
         this.log_id = log_id;
     }
 
