@@ -1,9 +1,17 @@
 package cn.iome.faceme.activities;
 
 import android.Manifest;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.hardware.Camera;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -11,204 +19,254 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
-import java.util.ArrayList;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
 
 import cn.iome.faceme.R;
-import cn.iome.faceme.bean.FaceResultBean;
-import cn.iome.faceme.bean.FaceUserBean;
-import cn.iome.faceme.bean.GroupListBean;
-import cn.iome.faceme.bean.GroupUserBean;
-import cn.iome.faceme.bean.IdentifyResultBean;
-import cn.iome.faceme.bean.QuickBean;
 import cn.iome.faceme.bean.RecognizeBean;
 import cn.iome.faceme.function.Consumer;
-import cn.iome.faceme.utility.Constants;
 import cn.iome.faceme.utility.FaceManager;
+import cn.iome.faceme.utility.UIUtil;
+import cn.iome.faceme.view.CameraView;
 
 /**
- * Created by haoping on 17/4/10.
- * uid:
+ * Created by haoping on 17/4/14.
+ * TODO
  */
 public class FaceActivity extends AppCompatActivity {
 
     private static final String TAG = FaceActivity.class.getSimpleName();
-    private static final int PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 1;
+    private static final int PERMISSIONS_REQUEST_CAMERA = 1;
+    private static final int REQUEST_IMAGE_CAPTURE = 2;
+    private Camera mCamera;
+    private String mCurrentPhotoPath;
     private FaceManager face;
+    private CameraView cameraPreview;
+    private ProgressBar statusBar;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        getPermission();
+
+        setContentView(R.layout.take_main);
         face = FaceManager.getFace();
+        takeCamera();
     }
 
-    public void takePhoto(View view) {
-        Intent intent = new Intent(this, TakeActivity.class);
-        startActivity(intent);
+    @Override
+    protected void onResume() {
+        super.onResume();
+        getPermission();
+
     }
 
-    public void quick(View view) {
-        face.quick(Constants.test1, new Consumer<QuickBean>() {
-            @Override
-            public void accept(QuickBean quickBean) {
-                if (quickBean != null) {
-                    Log.i(TAG, "accept: " + quickBean.toString());
+    private void takeCamera() {
+        mCamera = chooseCamera();
+        //followScreenOrientation(this, mCamera);
+        Log.i(TAG, "mCamera: " + mCamera);
+        cameraPreview = new CameraView(this, mCamera);
+        cameraPreview.setBackgroundResource(R.mipmap.face_recog_bg);
+        RelativeLayout preview = (RelativeLayout) findViewById(R.id.camera_preview);
+        preview.addView(cameraPreview);
+        statusBar = (ProgressBar) findViewById(R.id.status);
+    }
+
+    private void dispatchTakePictureIntent() {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+            Bundle extras = data.getExtras();
+            Bitmap imageBitmap = (Bitmap) extras.get("data");
+        }
+    }
+
+    /**
+     * onClick button
+     * @param view view
+     */
+    public void capture(View view) {
+        if (checkCameraHardware(this)) {
+            mCamera.takePicture(null, null, mPicture);
+        }
+    }
+
+    /**
+     * A safe way to get an instance of the Camera object.
+     */
+    public static Camera getCameraInstance() {
+        Camera c = null;
+        int numberOfCameras = Camera.getNumberOfCameras();
+        Log.i(TAG, "numberOfCameras: " + numberOfCameras);
+
+        try {
+            //the frontal camera has id = "1", and the back camera id = "0"
+            c = Camera.open(0); // attempt to get a Camera instance
+        } catch (Exception e) {
+            // Camera is not available (in use or does not exist)
+        }
+        return c; // returns null if camera is unavailable
+    }
+
+    private final Camera.CameraInfo mCameraInfo = new Camera.CameraInfo();
+
+    /**
+     * This rewrites
+     */
+    private Camera chooseCamera() {
+        for (int i = 0, count = Camera.getNumberOfCameras(); i < count; i++) {
+            Log.i(TAG, "chooseCamera: " + i);
+            Camera.getCameraInfo(i, mCameraInfo);
+            if (mCameraInfo.facing == 1) {
+                int mCameraId = i;
+                Log.i(TAG, "chooseCamera-mCameraId " + i);
+                return Camera.open(mCameraId);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * This rewrites
+     */
+    private Camera openFrontFacingCameraGingerbread() {
+        int cameraCount = 0;
+        Camera cam = null;
+        Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
+        cameraCount = Camera.getNumberOfCameras();
+        for (int camIdx = 0; camIdx < cameraCount; camIdx++) {
+            Camera.getCameraInfo(camIdx, cameraInfo);
+            if (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+                try {
+                    cam = Camera.open(camIdx);
+                } catch (RuntimeException e) {
+                    Log.e(TAG, "Camera failed to open: " + e.getLocalizedMessage());
                 }
             }
-        });
+        }
+
+        return cam;
     }
 
-    public void faceRecognizeWithPath(View view) {
+
+    /**
+     * Check if this device has a camera
+     */
+    private boolean checkCameraHardware(Context context) {
+        if (context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
+            // this device has a camera
+            return true;
+        } else {
+            // no camera on this device
+            return false;
+        }
+    }
+
+    /**
+     * check auto focus
+     */
+    public static boolean isAutoFocusSupported(Camera.Parameters params) {
+        List<String> modes = params.getSupportedFocusModes();
+        return modes.contains(Camera.Parameters.FOCUS_MODE_AUTO);
+    }
+
+    private Camera.PictureCallback mPicture = new Camera.PictureCallback() {
+
+        @Override
+        public void onPictureTaken(byte[] data, Camera camera) {
+
+            File pictureFile;
+            try {
+                pictureFile = createImageFile(FaceActivity.this);
+                if (pictureFile != null) {
+                    try {
+                        FileOutputStream fos = new FileOutputStream(pictureFile);
+                        Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
+                        bitmap.compress(Bitmap.CompressFormat.JPEG, 80, fos);
+                        fos.flush();
+                        fos.close();
+                        Log.i(TAG, "mCurrentPhotoPath: " + mCurrentPhotoPath);
+                        recognize();
+                    } catch (FileNotFoundException e) {
+                        Log.d(TAG, "File not found: " + e.getMessage());
+                    } catch (IOException e) {
+                        Log.d(TAG, "Error accessing file: " + e.getMessage());
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    };
+
+    private void recognize() {
+        statusBar.setVisibility(View.VISIBLE);
         HashMap<String, String> options = new HashMap<>();
         options.put("max_face_num", "5");
         options.put("face_fields", "age,beauty,expression,faceshape,gender,glasses,race,qualities");
-        face.faceRecognizeWithPath(Constants.test1, options, new Consumer<RecognizeBean>() {
+        face.faceRecognizeWithPath(mCurrentPhotoPath, options, new Consumer<RecognizeBean>() {
             @Override
             public void accept(RecognizeBean recognizeBean) {
+                statusBar.setVisibility(View.INVISIBLE);
+                RecognizeBean.ResultBean r = recognizeBean.getResult().get(0);
                 Log.i(TAG, "accept: " + recognizeBean.toString());
+                UIUtil.showDialog(FaceActivity.this, "人脸识别结果: ", " gender: " + r.getGender() + ",\n age: " + r.getAge() + ",\n beauty: " + r.getBeauty() + ",\n glasses: " + r.getGlasses(), "确定", "取消", true, new Consumer<DialogInterface>() {
+                    @Override
+                    public void accept(DialogInterface dialogInterface) {
+                        cameraPreview.startPreviewDisplay();
+                    }
+                });
             }
         });
     }
 
-    public void faceRecognizeWithBytes(View view) {
-        HashMap<String, String> options = new HashMap<>();
-        options.put("max_face_num", "5");
-        options.put("face_fields", "age,beauty,expression,faceshape,gender,glasses,race,qualities");
-        face.faceRecognizeWithBytes(face.readImageFile(Constants.test1), options, new Consumer<RecognizeBean>() {
-            @Override
-            public void accept(RecognizeBean recognizeBean) {
-                Log.i(TAG, "accept: " + recognizeBean.toString());
-            }
-        });
+    public File createImageFile(Context context) throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.SIMPLIFIED_CHINESE).format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
+        // Save a file: path for use with ACTION_VIEW intents
+        mCurrentPhotoPath = image.getAbsolutePath();
+        return image;
     }
 
-    public void facesetAddUser(View view) {
-        // 参数为本地图片路径
-        ArrayList<String> imgPaths = new ArrayList<>();
-        imgPaths.add(Constants.test1);
-        imgPaths.add(Constants.test2);
-        face.facesetAddUser("uid1", "first", "group1", imgPaths, new Consumer<FaceResultBean>() {
-            @Override
-            public void accept(FaceResultBean faceResultBean) {
-                Log.i(TAG, "accept: " + faceResultBean.toString());
-            }
-        });
+    public static void followScreenOrientation(Context context, Camera camera){
+        final int orientation = context.getResources().getConfiguration().orientation;
+        if(orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            camera.setDisplayOrientation(180);
+        }else if(orientation == Configuration.ORIENTATION_PORTRAIT) {
+            camera.setDisplayOrientation(90);
+        }
     }
-
-    public void facesetUpdateUser(View view) {
-        // 参数为本地图片路径
-        ArrayList<String> imgPaths = new ArrayList<>();
-        imgPaths.add(Constants.test1);
-        imgPaths.add(Constants.test2);
-        face.facesetUpdateUser("uid1", imgPaths, new Consumer<FaceResultBean>() {
-            @Override
-            public void accept(FaceResultBean faceResultBean) {
-                Log.i(TAG, "accept: " + faceResultBean.toString());
-            }
-        });
-    }
-
-    public void facesetDeleteUser(View view) {
-        face.facesetDeleteUser("uid1", new Consumer<FaceResultBean>() {
-            @Override
-            public void accept(FaceResultBean faceResultBean) {
-                Log.i(TAG, "accept: " + faceResultBean.toString());
-            }
-        });
-    }
-
-    public void verifyUser(View view) {
-        ArrayList<String> path = new ArrayList<>();
-        path.add(Constants.test1);
-        path.add(Constants.test2);
-        HashMap<String, Object> options = new HashMap<>(1);
-        options.put("top_num", path.size());
-        face.verifyUser("uid1", path, options, new Consumer<FaceResultBean>() {
-            @Override
-            public void accept(FaceResultBean faceResultBean) {
-                Log.i(TAG, "accept: " + faceResultBean.toString());
-            }
-        });
-    }
-
-    public void identifyUser(View view) {
-        ArrayList<String> path = new ArrayList<>();
-        path.add(Constants.test1);
-        //path.add(test2);
-        HashMap<String, Object> options = new HashMap<>(1);
-        options.put("user_top_num", path.size());
-        options.put("face_top_num", 10);
-        face.identifyUser("group1", path, options, new Consumer<IdentifyResultBean>() {
-            @Override
-            public void accept(IdentifyResultBean identifyResultBean) {
-                Log.i(TAG, "accept: " + identifyResultBean.toString());
-            }
-        });
-    }
-
-    public void getUser(View view) {
-        face.getUser("uid1", new Consumer<FaceUserBean>() {
-            @Override
-            public void accept(FaceUserBean faceUserBean) {
-                Log.i(TAG, "accept: " + faceUserBean.toString());
-            }
-        });
-    }
-
-    public void getGroupList(View view) {
-        HashMap<String, Object> options = new HashMap<>(2);
-        options.put("start", 0);
-        options.put("num", 10);
-        face.getGroupList(options, new Consumer<GroupListBean>() {
-            @Override
-            public void accept(GroupListBean groupListBean) {
-                Log.i(TAG, "accept: " + groupListBean.toString());
-            }
-        });
-    }
-
-    public void getGroupUsers(View view) {
-        HashMap<String, Object> options = new HashMap<>(2);
-        options.put("start", 0);
-        options.put("num", 10);
-        face.getGroupUsers("group1", options, new Consumer<GroupUserBean>() {
-            @Override
-            public void accept(GroupUserBean groupUserBean) {
-                Log.i(TAG, "accept: " + groupUserBean.toString());
-            }
-        });
-    }
-
-    public void addGroupUser(View view) {
-        face.addGroupUser("group1", "uid1", new Consumer<FaceResultBean>() {
-            @Override
-            public void accept(FaceResultBean faceResultBean) {
-                Log.i(TAG, "accept: " + faceResultBean.toString());
-            }
-        });
-    }
-
-    public void deleteGroupUser(View view) {
-        face.deleteGroupUser("group1", "uid1", new Consumer<FaceResultBean>() {
-            @Override
-            public void accept(FaceResultBean faceResultBean) {
-                Log.i(TAG, "accept: " + faceResultBean.toString());
-            }
-        });
-    }
-
 
     private void getPermission() {
         // Assume thisActivity is the current activity
-        int permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        int permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA);
         // if not get permission
         if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
             // Should we show an explanation?
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA)) {
                 System.out.println("shouldShowRequestPermissionRationale: true");
                 // Show an expanation to the user *asynchronously* -- don't block
                 // this thread waiting for the user's response! After the user
@@ -219,7 +277,7 @@ public class FaceActivity extends AppCompatActivity {
                 System.out.println("shouldShowRequestPermissionRationale: false");
                 // No explanation needed, we can request the permission.
 
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, PERMISSIONS_REQUEST_CAMERA);
 
                 // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
                 // app-defined int constant. The callback method gets the
@@ -231,7 +289,7 @@ public class FaceActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
         switch (requestCode) {
-            case PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE: {
+            case PERMISSIONS_REQUEST_CAMERA: {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 
@@ -250,6 +308,4 @@ public class FaceActivity extends AppCompatActivity {
             // permissions this app might request
         }
     }
-
-
 }
