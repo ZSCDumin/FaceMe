@@ -19,13 +19,13 @@ public class UIUtil {
         builder.setPositiveButton(positive, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                callback.apply(dialog);
+                callback.accept(dialog);
             }
         });
         builder.setNegativeButton(negative, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                callback.apply(dialog);
+                callback.accept(dialog);
             }
         });
         AlertDialog alertDialog = builder.create();
