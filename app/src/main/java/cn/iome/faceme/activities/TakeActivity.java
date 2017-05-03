@@ -51,7 +51,6 @@ public class TakeActivity extends AppCompatActivity {
     private static final int REQUEST_IMAGE_CAPTURE = 2;
     private Camera mCamera;
     private String mCurrentPhotoPath;
-    private int mCameraId = -1;
     private FaceManager face;
     private CameraView cameraPreview;
     private ProgressBar statusBar;
@@ -95,7 +94,6 @@ public class TakeActivity extends AppCompatActivity {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             Bundle extras = data.getExtras();
             Bitmap imageBitmap = (Bitmap) extras.get("data");
-            Log.i(TAG, "onActivityResult: image" + imageBitmap.toString());
         }
     }
 
@@ -136,7 +134,7 @@ public class TakeActivity extends AppCompatActivity {
             Log.i(TAG, "chooseCamera: " + i);
             Camera.getCameraInfo(i, mCameraInfo);
             if (mCameraInfo.facing == 1) {
-                mCameraId = i;
+                int mCameraId = i;
                 Log.i(TAG, "chooseCamera-mCameraId " + i);
                 return Camera.open(mCameraId);
             }
@@ -203,25 +201,8 @@ public class TakeActivity extends AppCompatActivity {
                         bitmap.compress(Bitmap.CompressFormat.JPEG, 80, fos);
                         fos.flush();
                         fos.close();
-                        statusBar.setVisibility(View.VISIBLE);
                         Log.i(TAG, "mCurrentPhotoPath: " + mCurrentPhotoPath);
-                        HashMap<String, String> options = new HashMap<>();
-                        options.put("max_face_num", "5");
-                        options.put("face_fields", "age,beauty,expression,faceshape,gender,glasses,race,qualities");
-                        face.faceRecognizeWithPath(mCurrentPhotoPath, options, new Consumer<RecognizeBean>() {
-                            @Override
-                            public void accept(RecognizeBean recognizeBean) {
-                                statusBar.setVisibility(View.INVISIBLE);
-                                RecognizeBean.ResultBean r = recognizeBean.getResult().get(0);
-                                Log.i(TAG, "accept: " + recognizeBean.toString());
-                                UIUtil.showDialog(TakeActivity.this, "人脸识别结果: ", " gender: " + r.getGender() + ",\n age: " + r.getAge() + ",\n beauty: " + r.getBeauty() + ",\n glasses: " + r.getGlasses(), "确定", "取消", true, new Consumer<DialogInterface>() {
-                                    @Override
-                                    public void accept(DialogInterface dialogInterface) {
-                                        cameraPreview.startPreviewDisplay();
-                                    }
-                                });
-                            }
-                        });
+                        recognize();
                     } catch (FileNotFoundException e) {
                         Log.d(TAG, "File not found: " + e.getMessage());
                     } catch (IOException e) {
@@ -233,6 +214,27 @@ public class TakeActivity extends AppCompatActivity {
             }
         }
     };
+
+    private void recognize() {
+        statusBar.setVisibility(View.VISIBLE);
+        HashMap<String, String> options = new HashMap<>();
+        options.put("max_face_num", "5");
+        options.put("face_fields", "age,beauty,expression,faceshape,gender,glasses,race,qualities");
+        face.faceRecognizeWithPath(mCurrentPhotoPath, options, new Consumer<RecognizeBean>() {
+            @Override
+            public void accept(RecognizeBean recognizeBean) {
+                statusBar.setVisibility(View.INVISIBLE);
+                RecognizeBean.ResultBean r = recognizeBean.getResult().get(0);
+                Log.i(TAG, "accept: " + recognizeBean.toString());
+                UIUtil.showDialog(TakeActivity.this, "人脸识别结果: ", " gender: " + r.getGender() + ",\n age: " + r.getAge() + ",\n beauty: " + r.getBeauty() + ",\n glasses: " + r.getGlasses(), "确定", "取消", true, new Consumer<DialogInterface>() {
+                    @Override
+                    public void accept(DialogInterface dialogInterface) {
+                        cameraPreview.startPreviewDisplay();
+                    }
+                });
+            }
+        });
+    }
 
     /**
      * 创建拍照文件
