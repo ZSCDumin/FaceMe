@@ -1,4 +1,4 @@
-package cn.iome.faceme;
+package cn.iome.faceme.utility;
 
 import android.os.Environment;
 

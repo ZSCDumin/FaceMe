@@ -1,8 +1,9 @@
-package cn.iome.faceme.util;
+package cn.iome.faceme.utility;
 
 import android.content.Context;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import com.baidu.aip.face.AipFace;
@@ -24,7 +25,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import cn.iome.faceme.BuildConfig;
-import cn.iome.faceme.Constants;
 import cn.iome.faceme.bean.FaceResultBean;
 import cn.iome.faceme.bean.FaceUserBean;
 import cn.iome.faceme.bean.GroupListBean;
@@ -33,6 +33,7 @@ import cn.iome.faceme.bean.IdentifyResultBean;
 import cn.iome.faceme.bean.QuickBean;
 import cn.iome.faceme.bean.RecognizeBean;
 import cn.iome.faceme.bean.RecognizeEachBean;
+import cn.iome.faceme.function.Consumer;
 
 /**
  * Created by haoping on 17/4/8.
@@ -55,7 +56,7 @@ public final class FaceManager {
         client.setSocketTimeoutInMillis(60000);//通过打开的连接传输数据的超时时间（单位：毫秒）
         threadPool = Executors.newSingleThreadExecutor();
         gson = new Gson();
-        handler = new Handler();
+        handler = new Handler(Looper.getMainLooper());
     }
 
     public static FaceManager getFace() {
@@ -69,14 +70,10 @@ public final class FaceManager {
         return face;
     }
 
-    public interface Callback<T> {
-        void apply(T t);
-    }
-
     /**
      * 快速入门
      */
-    public void quick(final String imagePath, final Callback<QuickBean> callback) {
+    public void quick(final String imagePath, final Consumer<QuickBean> callback) {
         threadPool.execute(new Runnable() {
             @Override
             public void run() {
@@ -160,7 +157,7 @@ public final class FaceManager {
      * @param path    图片路径
      * @param options 自定义参数
      */
-    public void faceRecognizeWithPath(final String path, final HashMap<String, String> options, final Callback<RecognizeBean> callback) {
+    public void faceRecognizeWithPath(final String path, final HashMap<String, String> options, final Consumer<RecognizeBean> callback) {
         threadPool.execute(new Runnable() {
             @Override
             public void run() {
@@ -245,7 +242,7 @@ public final class FaceManager {
      * @param Bytes   图片二进制数组
      * @param options 自定义参数
      */
-    public void faceRecognizeWithBytes(final byte[] Bytes, final HashMap<String, String> options, final Callback<RecognizeBean> callback) {
+    public void faceRecognizeWithBytes(final byte[] Bytes, final HashMap<String, String> options, final Consumer<RecognizeBean> callback) {
         threadPool.execute(new Runnable() {
             @Override
             public void run() {
@@ -286,7 +283,7 @@ public final class FaceManager {
      *
      * @param pathArray 本地图片路径集合
      */
-    public void faceRecognizeEach(final ArrayList<String> pathArray, final Callback<RecognizeEachBean> callback) {
+    public void faceRecognizeEach(final ArrayList<String> pathArray, final Consumer<RecognizeEachBean> callback) {
         threadPool.execute(new Runnable() {
             @Override
             public void run() {
@@ -334,7 +331,7 @@ public final class FaceManager {
      * @param groupId  用户需要添加组
      * @param imgPaths 用户头像集合
      */
-    public void facesetAddUser(final String uid, final String userInfo, final String groupId, final ArrayList<String> imgPaths, final Callback<FaceResultBean> callback) {
+    public void facesetAddUser(final String uid, final String userInfo, final String groupId, final ArrayList<String> imgPaths, final Consumer<FaceResultBean> callback) {
         threadPool.execute(new Runnable() {
             @Override
             public void run() {
@@ -378,7 +375,7 @@ public final class FaceManager {
      * @param uid  用户ID
      * @param path 用户头像集合
      */
-    public void facesetUpdateUser(final String uid, final ArrayList<String> path, final Callback<FaceResultBean> callback) {
+    public void facesetUpdateUser(final String uid, final ArrayList<String> path, final Consumer<FaceResultBean> callback) {
         threadPool.execute(new Runnable() {
             @Override
             public void run() {
@@ -417,7 +414,7 @@ public final class FaceManager {
      *
      * @param uid 用户ID
      */
-    public void facesetDeleteUser(final String uid, final Callback<FaceResultBean> callback) {
+    public void facesetDeleteUser(final String uid, final Consumer<FaceResultBean> callback) {
         threadPool.execute(new Runnable() {
             @Override
             public void run() {
@@ -471,7 +468,7 @@ public final class FaceManager {
      * @param path    用户头像集合
      * @param options 用户认证参数
      */
-    public void verifyUser(final String uid, final ArrayList<String> path, final HashMap<String, Object> options, final Callback<FaceResultBean> callback) {
+    public void verifyUser(final String uid, final ArrayList<String> path, final HashMap<String, Object> options, final Consumer<FaceResultBean> callback) {
         threadPool.execute(new Runnable() {
             @Override
             public void run() {
@@ -521,7 +518,7 @@ public final class FaceManager {
      * @param path    用户头像集合
      * @param options 用户认证参数
      */
-    public void identifyUser(final String groupId, final ArrayList<String> path, final HashMap<String, Object> options, final Callback<IdentifyResultBean> callback) {
+    public void identifyUser(final String groupId, final ArrayList<String> path, final HashMap<String, Object> options, final Consumer<IdentifyResultBean> callback) {
         threadPool.execute(new Runnable() {
             @Override
             public void run() {
@@ -556,7 +553,7 @@ public final class FaceManager {
      *
      * @param uid 用户ID
      */
-    public void getUser(final String uid, final Callback<FaceUserBean> callback) {
+    public void getUser(final String uid, final Consumer<FaceUserBean> callback) {
         threadPool.execute(new Runnable() {
             @Override
             public void run() {
@@ -596,7 +593,7 @@ public final class FaceManager {
      *
      * @param options options
      */
-    public void getGroupList(final HashMap<String, Object> options, final Callback<GroupListBean> callback) {
+    public void getGroupList(final HashMap<String, Object> options, final Consumer<GroupListBean> callback) {
         threadPool.execute(new Runnable() {
             @Override
             public void run() {
@@ -640,7 +637,7 @@ public final class FaceManager {
      * @param groupId 组ID
      * @param options options
      */
-    public void getGroupUsers(final String groupId, final HashMap<String, Object> options, final Callback<GroupUserBean> callback) {
+    public void getGroupUsers(final String groupId, final HashMap<String, Object> options, final Consumer<GroupUserBean> callback) {
         threadPool.execute(new Runnable() {
             @Override
             public void run() {
@@ -669,7 +666,7 @@ public final class FaceManager {
      * @param groupId 组ID
      * @param uid     用户ID
      */
-    public void addGroupUser(final String groupId, final String uid, final Callback<FaceResultBean> callback) {
+    public void addGroupUser(final String groupId, final String uid, final Consumer<FaceResultBean> callback) {
         threadPool.execute(new Runnable() {
             @Override
             public void run() {
@@ -698,7 +695,7 @@ public final class FaceManager {
      * @param groupId 组ID
      * @param uid     用户ID
      */
-    public void deleteGroupUser(final String groupId, final String uid, final Callback<FaceResultBean> callback) {
+    public void deleteGroupUser(final String groupId, final String uid, final Consumer<FaceResultBean> callback) {
         threadPool.execute(new Runnable() {
             @Override
             public void run() {
