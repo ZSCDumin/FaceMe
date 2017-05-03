@@ -1,6 +1,7 @@
 package cn.iome.faceme;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -27,12 +28,12 @@ import cn.iome.faceme.util.FaceManager.Callback;
 
 /**
  * Created by haoping on 17/4/10.
- * uid: dq65454dddd haoping
+ * uid:
  */
 public class FaceActivity extends AppCompatActivity {
 
     private static final String TAG = FaceActivity.class.getSimpleName();
-    private static final int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 1;
+    private static final int PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 1;
     private FaceManager face;
 
     @Override
@@ -43,18 +44,23 @@ public class FaceActivity extends AppCompatActivity {
         face = FaceManager.getFace();
     }
 
-    public void quick(View view){
+    public void takePhoto(View view) {
+        Intent intent = new Intent(this, TakeActivity.class);
+        startActivity(intent);
+    }
+
+    public void quick(View view) {
         face.quick(Constants.test1, new Callback<QuickBean>() {
             @Override
             public void apply(QuickBean quickBean) {
-                if(quickBean != null){
+                if (quickBean != null) {
                     Log.i(TAG, "apply: " + quickBean.toString());
                 }
             }
         });
     }
 
-    public void faceRecognizeWithPath(View view){
+    public void faceRecognizeWithPath(View view) {
         HashMap<String, String> options = new HashMap<>();
         options.put("max_face_num", "5");
         options.put("face_fields", "age,beauty,expression,faceshape,gender,glasses,race,qualities");
@@ -66,11 +72,19 @@ public class FaceActivity extends AppCompatActivity {
         });
     }
 
-    public void faceRecognizeWithBytes(View view){
-
+    public void faceRecognizeWithBytes(View view) {
+        HashMap<String, String> options = new HashMap<>();
+        options.put("max_face_num", "5");
+        options.put("face_fields", "age,beauty,expression,faceshape,gender,glasses,race,qualities");
+        face.faceRecognizeWithBytes(face.readImageFile(Constants.test1), options, new Callback<RecognizeBean>() {
+            @Override
+            public void apply(RecognizeBean recognizeBean) {
+                Log.i(TAG, "apply: " + recognizeBean.toString());
+            }
+        });
     }
 
-    public void facesetAddUser(View view){
+    public void facesetAddUser(View view) {
         // 参数为本地图片路径
         ArrayList<String> imgPaths = new ArrayList<>();
         imgPaths.add(Constants.test1);
@@ -83,7 +97,7 @@ public class FaceActivity extends AppCompatActivity {
         });
     }
 
-    public void facesetUpdateUser(View view){
+    public void facesetUpdateUser(View view) {
         // 参数为本地图片路径
         ArrayList<String> imgPaths = new ArrayList<>();
         imgPaths.add(Constants.test1);
@@ -96,7 +110,7 @@ public class FaceActivity extends AppCompatActivity {
         });
     }
 
-    public void facesetDeleteUser(View view){
+    public void facesetDeleteUser(View view) {
         face.facesetDeleteUser("uid1", new Callback<FaceResultBean>() {
             @Override
             public void apply(FaceResultBean faceResultBean) {
@@ -105,7 +119,7 @@ public class FaceActivity extends AppCompatActivity {
         });
     }
 
-    public void verifyUser(View view){
+    public void verifyUser(View view) {
         ArrayList<String> path = new ArrayList<>();
         path.add(Constants.test1);
         path.add(Constants.test2);
@@ -119,7 +133,7 @@ public class FaceActivity extends AppCompatActivity {
         });
     }
 
-    public void identifyUser(View view){
+    public void identifyUser(View view) {
         ArrayList<String> path = new ArrayList<>();
         path.add(Constants.test1);
         //path.add(test2);
@@ -134,7 +148,7 @@ public class FaceActivity extends AppCompatActivity {
         });
     }
 
-    public void getUser(View view){
+    public void getUser(View view) {
         face.getUser("uid1", new Callback<FaceUserBean>() {
             @Override
             public void apply(FaceUserBean faceUserBean) {
@@ -143,7 +157,7 @@ public class FaceActivity extends AppCompatActivity {
         });
     }
 
-    public void getGroupList(View view){
+    public void getGroupList(View view) {
         HashMap<String, Object> options = new HashMap<>(2);
         options.put("start", 0);
         options.put("num", 10);
@@ -155,7 +169,7 @@ public class FaceActivity extends AppCompatActivity {
         });
     }
 
-    public void getGroupUsers(View view){
+    public void getGroupUsers(View view) {
         HashMap<String, Object> options = new HashMap<>(2);
         options.put("start", 0);
         options.put("num", 10);
@@ -167,7 +181,7 @@ public class FaceActivity extends AppCompatActivity {
         });
     }
 
-    public void addGroupUser(View view){
+    public void addGroupUser(View view) {
         face.addGroupUser("group1", "uid1", new Callback<FaceResultBean>() {
             @Override
             public void apply(FaceResultBean faceResultBean) {
@@ -176,7 +190,7 @@ public class FaceActivity extends AppCompatActivity {
         });
     }
 
-    public void deleteGroupUser(View view){
+    public void deleteGroupUser(View view) {
         face.deleteGroupUser("group1", "uid1", new Callback<FaceResultBean>() {
             @Override
             public void apply(FaceResultBean faceResultBean) {
@@ -203,7 +217,7 @@ public class FaceActivity extends AppCompatActivity {
                 System.out.println("shouldShowRequestPermissionRationale: false");
                 // No explanation needed, we can request the permission.
 
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.INTERNET}, MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
 
                 // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
                 // app-defined int constant. The callback method gets the
@@ -215,7 +229,7 @@ public class FaceActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
         switch (requestCode) {
-            case MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE: {
+            case PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE: {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 

@@ -1,5 +1,7 @@
 package cn.iome.faceme.util;
 
+import android.content.Context;
+import android.os.Environment;
 import android.os.Handler;
 import android.util.Log;
 
@@ -10,9 +12,14 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -52,9 +59,9 @@ public final class FaceManager {
     }
 
     public static FaceManager getFace() {
-        if(face == null){
-            synchronized (FaceManager.class){
-                if(face == null){
+        if (face == null) {
+            synchronized (FaceManager.class) {
+                if (face == null) {
                     face = new FaceManager();
                 }
             }
@@ -81,45 +88,12 @@ public final class FaceManager {
                         callback.apply(quickBean);
                     }
                 });
-                if(BuildConfig.DEBUG){
+                if (BuildConfig.DEBUG) {
                     try {
                         Log.i(TAG, "quick: " + res.toString(2));
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
-                }
-            }
-        });
-    }
-
-    /**
-     * 人脸检测
-     */
-    private void faceRecognize(final String imagePath) {
-        threadPool.execute(new Runnable() {
-            @Override
-            public void run() {
-                // 参数为本地图片路径
-                JSONObject response = client.detect(imagePath, new HashMap<String, String>());
-                try {
-                    Log.i(TAG, "faceRecognize-response: " + response.toString(2));
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-
-        threadPool.execute(new Runnable() {
-            @Override
-            public void run() {
-                byte[] file;    // readImageFile函数仅为示例
-                try {
-                    // 参数为本地图片文件二进制数组
-                    file = readImageFile(imagePath);
-                    JSONObject response2 = client.detect(file, new HashMap<String, String>());
-                    Log.i(TAG, "faceRecognize-response2: " + response2.toString(2));
-                } catch (Exception e) {
-                    e.printStackTrace();
                 }
             }
         });
@@ -753,20 +727,56 @@ public final class FaceManager {
      *
      * @param imagePath 文件路径
      * @return bytes
-     * @throws Exception exception
      */
-    private byte[] readImageFile(String imagePath) throws Exception {
-        FileInputStream fis = new FileInputStream(imagePath);
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        byte[] buffer = new byte[1024];
-        int length;
-        while ((length = fis.read(buffer)) != -1) {
-            baos.write(buffer, 0, length);
+    public byte[] readImageFile(String imagePath) {
+        byte[] bytes = new byte[0];
+        try {
+            FileInputStream fis = new FileInputStream(imagePath);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = fis.read(buffer)) != -1) {
+                baos.write(buffer, 0, length);
+            }
+            bytes = baos.toByteArray();
+            fis.close();
+            baos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        byte[] bytes = baos.toByteArray();
-        fis.close();
-        baos.close();
         return bytes;
+    }
+
+    private String mCurrentPhotoPath;
+
+    /**
+     * 创建拍照文件
+     * @param context context
+     * @return 照片文件
+     * @throws IOException IOException
+     */
+    public File createImageFile(Context context) throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.SIMPLIFIED_CHINESE).format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
+
+        // Save a file: path for use with ACTION_VIEW intents
+        mCurrentPhotoPath = image.getAbsolutePath();
+        return image;
+    }
+
+    /**
+     * 返回拍摄的照片路径
+     * @return 照片路径
+     */
+    public String getPhotoPath(){
+        return mCurrentPhotoPath;
     }
 
 }

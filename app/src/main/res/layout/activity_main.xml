@@ -4,7 +4,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="cn.iome.faceme.MainActivity">
+    tools:context="cn.iome.faceme.FaceActivity">
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:onClick="takePhoto"
+        android:text="takePhoto" />
 
     <Button
         android:layout_width="match_parent"
