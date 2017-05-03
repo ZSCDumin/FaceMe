@@ -2,11 +2,11 @@ package cn.iome.faceme.bean;
 
 import java.util.List;
 
-import cn.iome.faceme.util.FaceUtil;
+import cn.iome.faceme.util.FaceManager;
 
 /**
  * Created by haoping on 17/4/10.
- * 快速执行后返回的数据 {@link FaceUtil#quick(String, FaceUtil.Callback)}
+ * 快速执行后返回的数据 {@link FaceManager#quick(String, FaceManager.Callback)}
  */
 public class QuickBean {
 

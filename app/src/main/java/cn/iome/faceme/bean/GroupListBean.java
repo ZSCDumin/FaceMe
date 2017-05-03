@@ -2,11 +2,11 @@ package cn.iome.faceme.bean;
 
 import java.util.List;
 
-import cn.iome.faceme.util.FaceUtil;
+import cn.iome.faceme.util.FaceManager;
 
 /**
  * Created by haoping on 17/4/10.
- * {@link FaceUtil#getGroupList(java.util.HashMap, FaceUtil.Callback)}
+ * {@link FaceManager#getGroupList(java.util.HashMap, FaceManager.Callback)}
  */
 public class GroupListBean {
 
@@ -17,7 +17,7 @@ public class GroupListBean {
      */
 
     private int result_num;
-    private int log_id;
+    private long log_id;
     private List<String> result;
 
     public int getResult_num() {
@@ -28,11 +28,11 @@ public class GroupListBean {
         this.result_num = result_num;
     }
 
-    public int getLog_id() {
+    public long getLog_id() {
         return log_id;
     }
 
-    public void setLog_id(int log_id) {
+    public void setLog_id(long log_id) {
         this.log_id = log_id;
     }
 

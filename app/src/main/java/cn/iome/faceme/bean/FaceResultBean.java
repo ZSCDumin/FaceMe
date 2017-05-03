@@ -2,16 +2,16 @@ package cn.iome.faceme.bean;
 
 import java.util.List;
 
-import cn.iome.faceme.util.FaceUtil;
+import cn.iome.faceme.util.FaceManager;
 
 /**
  * Created by haoping on 17/4/10.
- * {@link FaceUtil#verifyUser(java.lang.String, java.util.ArrayList, java.util.HashMap, FaceUtil.Callback)}
- * {@link FaceUtil#facesetDeleteUser(java.lang.String, FaceUtil.Callback)}
- * {@link FaceUtil#facesetUpdateUser(java.lang.String, java.util.ArrayList, FaceUtil.Callback)}
- * {@link FaceUtil#facesetAddUser(java.lang.String, java.lang.String, java.lang.String, java.util.ArrayList, FaceUtil.Callback)}
- * {@link FaceUtil#deleteGroupUser(java.lang.String, java.lang.String, FaceUtil.Callback)}
- * {@link FaceUtil#addGroupUser(java.lang.String, java.lang.String, FaceUtil.Callback)}
+ * {@link FaceManager#verifyUser(java.lang.String, java.util.ArrayList, java.util.HashMap, FaceManager.Callback)}
+ * {@link FaceManager#facesetDeleteUser(java.lang.String, FaceManager.Callback)}
+ * {@link FaceManager#facesetUpdateUser(java.lang.String, java.util.ArrayList, FaceManager.Callback)}
+ * {@link FaceManager#facesetAddUser(java.lang.String, java.lang.String, java.lang.String, java.util.ArrayList, FaceManager.Callback)}
+ * {@link FaceManager#deleteGroupUser(java.lang.String, java.lang.String, FaceManager.Callback)}
+ * {@link FaceManager#addGroupUser(java.lang.String, java.lang.String, FaceManager.Callback)}
  */
 public class FaceResultBean {
 

@@ -2,14 +2,13 @@ package cn.iome.faceme.bean;
 
 import java.util.List;
 
-import cn.iome.faceme.util.FaceUtil;
+import cn.iome.faceme.util.FaceManager;
 
 /**
  * Created by haoping on 17/4/10.
- * {@link FaceUtil#faceRecognizeEach(java.util.ArrayList, FaceUtil.Callback)}
+ * {@link FaceManager#faceRecognizeEach(java.util.ArrayList, FaceManager.Callback)}
  */
 public class RecognizeEachBean {
-
 
     /**
      * result_num : 3
