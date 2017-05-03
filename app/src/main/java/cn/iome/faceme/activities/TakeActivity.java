@@ -1,10 +1,13 @@
-package cn.iome.faceme;
+package cn.iome.faceme.activities;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.hardware.Camera;
 import android.os.Bundle;
 import android.os.Environment;
@@ -16,7 +19,8 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
-import android.widget.FrameLayout;
+import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import java.io.File;
@@ -25,9 +29,16 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 
-import cn.iome.faceme.view.CameraPreview;
+import cn.iome.faceme.R;
+import cn.iome.faceme.bean.RecognizeBean;
+import cn.iome.faceme.function.Consumer;
+import cn.iome.faceme.utility.FaceManager;
+import cn.iome.faceme.utility.UIUtil;
+import cn.iome.faceme.view.CameraView;
 
 /**
  * Created by haoping on 17/4/14.
@@ -41,13 +52,16 @@ public class TakeActivity extends AppCompatActivity {
     private Camera mCamera;
     private String mCurrentPhotoPath;
     private int mCameraId = -1;
+    private FaceManager face;
+    private CameraView cameraPreview;
+    private ProgressBar statusBar;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.take_main);
-
+        face = FaceManager.getFace();
         takeCamera();
     }
 
@@ -60,11 +74,13 @@ public class TakeActivity extends AppCompatActivity {
 
     private void takeCamera() {
         mCamera = chooseCamera();
+        //followScreenOrientation(this, mCamera);
         Log.i(TAG, "mCamera: " + mCamera);
-        CameraPreview cameraPreview = new CameraPreview(this, mCamera);
-        FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
-
+        cameraPreview = new CameraView(this, mCamera);
+        cameraPreview.setBackgroundResource(R.mipmap.face_recog_bg);
+        RelativeLayout preview = (RelativeLayout) findViewById(R.id.camera_preview);
         preview.addView(cameraPreview);
+        statusBar = (ProgressBar) findViewById(R.id.status);
     }
 
     private void dispatchTakePictureIntent() {
@@ -83,6 +99,10 @@ public class TakeActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * onClick button
+     * @param view view
+     */
     public void capture(View view) {
         if (checkCameraHardware(this)) {
             mCamera.takePicture(null, null, mPicture);
@@ -115,7 +135,7 @@ public class TakeActivity extends AppCompatActivity {
         for (int i = 0, count = Camera.getNumberOfCameras(); i < count; i++) {
             Log.i(TAG, "chooseCamera: " + i);
             Camera.getCameraInfo(i, mCameraInfo);
-            if (mCameraInfo.facing == 0) {
+            if (mCameraInfo.facing == 1) {
                 mCameraId = i;
                 Log.i(TAG, "chooseCamera-mCameraId " + i);
                 return Camera.open(mCameraId);
@@ -124,6 +144,9 @@ public class TakeActivity extends AppCompatActivity {
         return null;
     }
 
+    /**
+     * This rewrites
+     */
     private Camera openFrontFacingCameraGingerbread() {
         int cameraCount = 0;
         Camera cam = null;
@@ -157,6 +180,14 @@ public class TakeActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * check auto focus
+     */
+    public static boolean isAutoFocusSupported(Camera.Parameters params) {
+        List<String> modes = params.getSupportedFocusModes();
+        return modes.contains(Camera.Parameters.FOCUS_MODE_AUTO);
+    }
+
     private Camera.PictureCallback mPicture = new Camera.PictureCallback() {
 
         @Override
@@ -168,9 +199,29 @@ public class TakeActivity extends AppCompatActivity {
                 if (pictureFile != null) {
                     try {
                         FileOutputStream fos = new FileOutputStream(pictureFile);
-                        fos.write(data);
+                        Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
+                        bitmap.compress(Bitmap.CompressFormat.JPEG, 80, fos);
+                        fos.flush();
                         fos.close();
+                        statusBar.setVisibility(View.VISIBLE);
                         Log.i(TAG, "mCurrentPhotoPath: " + mCurrentPhotoPath);
+                        HashMap<String, String> options = new HashMap<>();
+                        options.put("max_face_num", "5");
+                        options.put("face_fields", "age,beauty,expression,faceshape,gender,glasses,race,qualities");
+                        face.faceRecognizeWithPath(mCurrentPhotoPath, options, new Consumer<RecognizeBean>() {
+                            @Override
+                            public void apply(RecognizeBean recognizeBean) {
+                                statusBar.setVisibility(View.INVISIBLE);
+                                RecognizeBean.ResultBean r = recognizeBean.getResult().get(0);
+                                Log.i(TAG, "apply: " + recognizeBean.toString());
+                                UIUtil.showDialog(TakeActivity.this, "人脸识别结果: ", " gender: " + r.getGender() + ",\n age: " + r.getAge() + ",\n beauty: " + r.getBeauty() + ",\n glasses: " + r.getGlasses(), "确定", "取消", true, new Consumer<DialogInterface>() {
+                                    @Override
+                                    public void apply(DialogInterface dialogInterface) {
+                                        cameraPreview.startPreviewDisplay();
+                                    }
+                                });
+                            }
+                        });
                     } catch (FileNotFoundException e) {
                         Log.d(TAG, "File not found: " + e.getMessage());
                     } catch (IOException e) {
@@ -200,10 +251,18 @@ public class TakeActivity extends AppCompatActivity {
                 ".jpg",         /* suffix */
                 storageDir      /* directory */
         );
-
         // Save a file: path for use with ACTION_VIEW intents
         mCurrentPhotoPath = image.getAbsolutePath();
         return image;
+    }
+
+    public static void followScreenOrientation(Context context, Camera camera){
+        final int orientation = context.getResources().getConfiguration().orientation;
+        if(orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            camera.setDisplayOrientation(180);
+        }else if(orientation == Configuration.ORIENTATION_PORTRAIT) {
+            camera.setDisplayOrientation(90);
+        }
     }
 
     private void getPermission() {

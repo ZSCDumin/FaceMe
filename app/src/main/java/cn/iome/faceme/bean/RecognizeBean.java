@@ -2,7 +2,7 @@ package cn.iome.faceme.bean;
 
 import java.util.List;
 
-import cn.iome.faceme.util.FaceManager;
+import cn.iome.faceme.utility.FaceManager;
 
 /**
  * Created by haoping on 17/4/10.
@@ -68,7 +68,7 @@ public class RecognizeBean {
          */
 
         private LocationBean location;
-        private int face_probability;
+        private double face_probability;
         private int rotation_angle;
         private double yaw;
         private double pitch;
@@ -82,7 +82,7 @@ public class RecognizeBean {
         private int glasses;
         private double glasses_probability;
         private String race;
-        private int race_probability;
+        private double race_probability;
         private QualitiesBean qualities;
         private List<FaceshapeBean> faceshape;
 
@@ -94,11 +94,11 @@ public class RecognizeBean {
             this.location = location;
         }
 
-        public int getFace_probability() {
+        public double getFace_probability() {
             return face_probability;
         }
 
-        public void setFace_probability(int face_probability) {
+        public void setFace_probability(double face_probability) {
             this.face_probability = face_probability;
         }
 
@@ -206,11 +206,11 @@ public class RecognizeBean {
             this.race = race;
         }
 
-        public int getRace_probability() {
+        public double getRace_probability() {
             return race_probability;
         }
 
-        public void setRace_probability(int race_probability) {
+        public void setRace_probability(double race_probability) {
             this.race_probability = race_probability;
         }
 

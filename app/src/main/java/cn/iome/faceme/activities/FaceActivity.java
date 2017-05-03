@@ -1,4 +1,4 @@
-package cn.iome.faceme;
+package cn.iome.faceme.activities;
 
 import android.Manifest;
 import android.content.Intent;
@@ -16,6 +16,7 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import cn.iome.faceme.R;
 import cn.iome.faceme.bean.FaceResultBean;
 import cn.iome.faceme.bean.FaceUserBean;
 import cn.iome.faceme.bean.GroupListBean;
@@ -23,8 +24,9 @@ import cn.iome.faceme.bean.GroupUserBean;
 import cn.iome.faceme.bean.IdentifyResultBean;
 import cn.iome.faceme.bean.QuickBean;
 import cn.iome.faceme.bean.RecognizeBean;
-import cn.iome.faceme.util.FaceManager;
-import cn.iome.faceme.util.FaceManager.Callback;
+import cn.iome.faceme.function.Consumer;
+import cn.iome.faceme.utility.Constants;
+import cn.iome.faceme.utility.FaceManager;
 
 /**
  * Created by haoping on 17/4/10.
@@ -50,7 +52,7 @@ public class FaceActivity extends AppCompatActivity {
     }
 
     public void quick(View view) {
-        face.quick(Constants.test1, new Callback<QuickBean>() {
+        face.quick(Constants.test1, new Consumer<QuickBean>() {
             @Override
             public void apply(QuickBean quickBean) {
                 if (quickBean != null) {
@@ -64,7 +66,7 @@ public class FaceActivity extends AppCompatActivity {
         HashMap<String, String> options = new HashMap<>();
         options.put("max_face_num", "5");
         options.put("face_fields", "age,beauty,expression,faceshape,gender,glasses,race,qualities");
-        face.faceRecognizeWithPath(Constants.test1, options, new Callback<RecognizeBean>() {
+        face.faceRecognizeWithPath(Constants.test1, options, new Consumer<RecognizeBean>() {
             @Override
             public void apply(RecognizeBean recognizeBean) {
                 Log.i(TAG, "apply: " + recognizeBean.toString());
@@ -76,7 +78,7 @@ public class FaceActivity extends AppCompatActivity {
         HashMap<String, String> options = new HashMap<>();
         options.put("max_face_num", "5");
         options.put("face_fields", "age,beauty,expression,faceshape,gender,glasses,race,qualities");
-        face.faceRecognizeWithBytes(face.readImageFile(Constants.test1), options, new Callback<RecognizeBean>() {
+        face.faceRecognizeWithBytes(face.readImageFile(Constants.test1), options, new Consumer<RecognizeBean>() {
             @Override
             public void apply(RecognizeBean recognizeBean) {
                 Log.i(TAG, "apply: " + recognizeBean.toString());
@@ -89,7 +91,7 @@ public class FaceActivity extends AppCompatActivity {
         ArrayList<String> imgPaths = new ArrayList<>();
         imgPaths.add(Constants.test1);
         imgPaths.add(Constants.test2);
-        face.facesetAddUser("uid1", "first", "group1", imgPaths, new Callback<FaceResultBean>() {
+        face.facesetAddUser("uid1", "first", "group1", imgPaths, new Consumer<FaceResultBean>() {
             @Override
             public void apply(FaceResultBean faceResultBean) {
                 Log.i(TAG, "apply: " + faceResultBean.toString());
@@ -102,7 +104,7 @@ public class FaceActivity extends AppCompatActivity {
         ArrayList<String> imgPaths = new ArrayList<>();
         imgPaths.add(Constants.test1);
         imgPaths.add(Constants.test2);
-        face.facesetUpdateUser("uid1", imgPaths, new Callback<FaceResultBean>() {
+        face.facesetUpdateUser("uid1", imgPaths, new Consumer<FaceResultBean>() {
             @Override
             public void apply(FaceResultBean faceResultBean) {
                 Log.i(TAG, "apply: " + faceResultBean.toString());
@@ -111,7 +113,7 @@ public class FaceActivity extends AppCompatActivity {
     }
 
     public void facesetDeleteUser(View view) {
-        face.facesetDeleteUser("uid1", new Callback<FaceResultBean>() {
+        face.facesetDeleteUser("uid1", new Consumer<FaceResultBean>() {
             @Override
             public void apply(FaceResultBean faceResultBean) {
                 Log.i(TAG, "apply: " + faceResultBean.toString());
@@ -125,7 +127,7 @@ public class FaceActivity extends AppCompatActivity {
         path.add(Constants.test2);
         HashMap<String, Object> options = new HashMap<>(1);
         options.put("top_num", path.size());
-        face.verifyUser("uid1", path, options, new Callback<FaceResultBean>() {
+        face.verifyUser("uid1", path, options, new Consumer<FaceResultBean>() {
             @Override
             public void apply(FaceResultBean faceResultBean) {
                 Log.i(TAG, "apply: " + faceResultBean.toString());
@@ -140,7 +142,7 @@ public class FaceActivity extends AppCompatActivity {
         HashMap<String, Object> options = new HashMap<>(1);
         options.put("user_top_num", path.size());
         options.put("face_top_num", 10);
-        face.identifyUser("group1", path, options, new Callback<IdentifyResultBean>() {
+        face.identifyUser("group1", path, options, new Consumer<IdentifyResultBean>() {
             @Override
             public void apply(IdentifyResultBean identifyResultBean) {
                 Log.i(TAG, "apply: " + identifyResultBean.toString());
@@ -149,7 +151,7 @@ public class FaceActivity extends AppCompatActivity {
     }
 
     public void getUser(View view) {
-        face.getUser("uid1", new Callback<FaceUserBean>() {
+        face.getUser("uid1", new Consumer<FaceUserBean>() {
             @Override
             public void apply(FaceUserBean faceUserBean) {
                 Log.i(TAG, "apply: " + faceUserBean.toString());
@@ -161,7 +163,7 @@ public class FaceActivity extends AppCompatActivity {
         HashMap<String, Object> options = new HashMap<>(2);
         options.put("start", 0);
         options.put("num", 10);
-        face.getGroupList(options, new Callback<GroupListBean>() {
+        face.getGroupList(options, new Consumer<GroupListBean>() {
             @Override
             public void apply(GroupListBean groupListBean) {
                 Log.i(TAG, "apply: " + groupListBean.toString());
@@ -173,7 +175,7 @@ public class FaceActivity extends AppCompatActivity {
         HashMap<String, Object> options = new HashMap<>(2);
         options.put("start", 0);
         options.put("num", 10);
-        face.getGroupUsers("group1", options, new Callback<GroupUserBean>() {
+        face.getGroupUsers("group1", options, new Consumer<GroupUserBean>() {
             @Override
             public void apply(GroupUserBean groupUserBean) {
                 Log.i(TAG, "apply: " + groupUserBean.toString());
@@ -182,7 +184,7 @@ public class FaceActivity extends AppCompatActivity {
     }
 
     public void addGroupUser(View view) {
-        face.addGroupUser("group1", "uid1", new Callback<FaceResultBean>() {
+        face.addGroupUser("group1", "uid1", new Consumer<FaceResultBean>() {
             @Override
             public void apply(FaceResultBean faceResultBean) {
                 Log.i(TAG, "apply: " + faceResultBean.toString());
@@ -191,7 +193,7 @@ public class FaceActivity extends AppCompatActivity {
     }
 
     public void deleteGroupUser(View view) {
-        face.deleteGroupUser("group1", "uid1", new Callback<FaceResultBean>() {
+        face.deleteGroupUser("group1", "uid1", new Consumer<FaceResultBean>() {
             @Override
             public void apply(FaceResultBean faceResultBean) {
                 Log.i(TAG, "apply: " + faceResultBean.toString());

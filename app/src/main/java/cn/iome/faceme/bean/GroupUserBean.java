@@ -2,7 +2,7 @@ package cn.iome.faceme.bean;
 
 import java.util.List;
 
-import cn.iome.faceme.util.FaceManager;
+import cn.iome.faceme.utility.FaceManager;
 
 /**
  * Created by haoping on 17/4/10.
