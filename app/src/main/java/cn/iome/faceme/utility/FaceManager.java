@@ -82,7 +82,7 @@ public final class FaceManager {
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        callback.apply(quickBean);
+                        callback.accept(quickBean);
                     }
                 });
                 if (BuildConfig.DEBUG) {
@@ -167,7 +167,7 @@ public final class FaceManager {
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        callback.apply(recognizeBean);
+                        callback.accept(recognizeBean);
                     }
                 });
                 if (BuildConfig.DEBUG) {
@@ -251,7 +251,7 @@ public final class FaceManager {
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        callback.apply(recognizeBean);
+                        callback.accept(recognizeBean);
                     }
                 });
                 if (BuildConfig.DEBUG) {
@@ -292,7 +292,7 @@ public final class FaceManager {
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        callback.apply(recognizeEachBean);
+                        callback.accept(recognizeEachBean);
                     }
                 });
                 if (BuildConfig.DEBUG) {
@@ -340,7 +340,7 @@ public final class FaceManager {
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        callback.apply(faceResultBean);
+                        callback.accept(faceResultBean);
                     }
                 });
                 if (BuildConfig.DEBUG) {
@@ -384,7 +384,7 @@ public final class FaceManager {
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        callback.apply(faceResultBean);
+                        callback.accept(faceResultBean);
                     }
                 });
                 if (BuildConfig.DEBUG) {
@@ -423,7 +423,7 @@ public final class FaceManager {
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        callback.apply(faceResultBean);
+                        callback.accept(faceResultBean);
                     }
                 });
                 if (BuildConfig.DEBUG) {
@@ -477,7 +477,7 @@ public final class FaceManager {
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        callback.apply(faceResultBean);
+                        callback.accept(faceResultBean);
                     }
                 });
                 if (BuildConfig.DEBUG) {
@@ -527,7 +527,7 @@ public final class FaceManager {
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        callback.apply(identifyResultBean);
+                        callback.accept(identifyResultBean);
                     }
                 });
                 if (BuildConfig.DEBUG) {
@@ -562,7 +562,7 @@ public final class FaceManager {
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        callback.apply(faceUserBean);
+                        callback.accept(faceUserBean);
                     }
                 });
                 if (BuildConfig.DEBUG) {
@@ -602,7 +602,7 @@ public final class FaceManager {
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        callback.apply(groupListBean);
+                        callback.accept(groupListBean);
                     }
                 });
                 if (BuildConfig.DEBUG) {
@@ -646,7 +646,7 @@ public final class FaceManager {
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        callback.apply(groupUserBean);
+                        callback.accept(groupUserBean);
                     }
                 });
                 if (BuildConfig.DEBUG) {
@@ -675,7 +675,7 @@ public final class FaceManager {
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        callback.apply(faceResultBean);
+                        callback.accept(faceResultBean);
                     }
                 });
                 if (BuildConfig.DEBUG) {
@@ -704,7 +704,7 @@ public final class FaceManager {
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        callback.apply(faceResultBean);
+                        callback.accept(faceResultBean);
                     }
                 });
                 if (BuildConfig.DEBUG) {

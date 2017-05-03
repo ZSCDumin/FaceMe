@@ -210,13 +210,13 @@ public class TakeActivity extends AppCompatActivity {
                         options.put("face_fields", "age,beauty,expression,faceshape,gender,glasses,race,qualities");
                         face.faceRecognizeWithPath(mCurrentPhotoPath, options, new Consumer<RecognizeBean>() {
                             @Override
-                            public void apply(RecognizeBean recognizeBean) {
+                            public void accept(RecognizeBean recognizeBean) {
                                 statusBar.setVisibility(View.INVISIBLE);
                                 RecognizeBean.ResultBean r = recognizeBean.getResult().get(0);
-                                Log.i(TAG, "apply: " + recognizeBean.toString());
+                                Log.i(TAG, "accept: " + recognizeBean.toString());
                                 UIUtil.showDialog(TakeActivity.this, "人脸识别结果: ", " gender: " + r.getGender() + ",\n age: " + r.getAge() + ",\n beauty: " + r.getBeauty() + ",\n glasses: " + r.getGlasses(), "确定", "取消", true, new Consumer<DialogInterface>() {
                                     @Override
-                                    public void apply(DialogInterface dialogInterface) {
+                                    public void accept(DialogInterface dialogInterface) {
                                         cameraPreview.startPreviewDisplay();
                                     }
                                 });

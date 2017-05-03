@@ -5,5 +5,5 @@ package cn.iome.faceme.function;
  * TODO
  */
 public interface Consumer<T> {
-    void apply(T t);
+    void accept(T t);
 }

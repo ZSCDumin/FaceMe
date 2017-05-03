@@ -54,9 +54,9 @@ public class FaceActivity extends AppCompatActivity {
     public void quick(View view) {
         face.quick(Constants.test1, new Consumer<QuickBean>() {
             @Override
-            public void apply(QuickBean quickBean) {
+            public void accept(QuickBean quickBean) {
                 if (quickBean != null) {
-                    Log.i(TAG, "apply: " + quickBean.toString());
+                    Log.i(TAG, "accept: " + quickBean.toString());
                 }
             }
         });
@@ -68,8 +68,8 @@ public class FaceActivity extends AppCompatActivity {
         options.put("face_fields", "age,beauty,expression,faceshape,gender,glasses,race,qualities");
         face.faceRecognizeWithPath(Constants.test1, options, new Consumer<RecognizeBean>() {
             @Override
-            public void apply(RecognizeBean recognizeBean) {
-                Log.i(TAG, "apply: " + recognizeBean.toString());
+            public void accept(RecognizeBean recognizeBean) {
+                Log.i(TAG, "accept: " + recognizeBean.toString());
             }
         });
     }
@@ -80,8 +80,8 @@ public class FaceActivity extends AppCompatActivity {
         options.put("face_fields", "age,beauty,expression,faceshape,gender,glasses,race,qualities");
         face.faceRecognizeWithBytes(face.readImageFile(Constants.test1), options, new Consumer<RecognizeBean>() {
             @Override
-            public void apply(RecognizeBean recognizeBean) {
-                Log.i(TAG, "apply: " + recognizeBean.toString());
+            public void accept(RecognizeBean recognizeBean) {
+                Log.i(TAG, "accept: " + recognizeBean.toString());
             }
         });
     }
@@ -93,8 +93,8 @@ public class FaceActivity extends AppCompatActivity {
         imgPaths.add(Constants.test2);
         face.facesetAddUser("uid1", "first", "group1", imgPaths, new Consumer<FaceResultBean>() {
             @Override
-            public void apply(FaceResultBean faceResultBean) {
-                Log.i(TAG, "apply: " + faceResultBean.toString());
+            public void accept(FaceResultBean faceResultBean) {
+                Log.i(TAG, "accept: " + faceResultBean.toString());
             }
         });
     }
@@ -106,8 +106,8 @@ public class FaceActivity extends AppCompatActivity {
         imgPaths.add(Constants.test2);
         face.facesetUpdateUser("uid1", imgPaths, new Consumer<FaceResultBean>() {
             @Override
-            public void apply(FaceResultBean faceResultBean) {
-                Log.i(TAG, "apply: " + faceResultBean.toString());
+            public void accept(FaceResultBean faceResultBean) {
+                Log.i(TAG, "accept: " + faceResultBean.toString());
             }
         });
     }
@@ -115,8 +115,8 @@ public class FaceActivity extends AppCompatActivity {
     public void facesetDeleteUser(View view) {
         face.facesetDeleteUser("uid1", new Consumer<FaceResultBean>() {
             @Override
-            public void apply(FaceResultBean faceResultBean) {
-                Log.i(TAG, "apply: " + faceResultBean.toString());
+            public void accept(FaceResultBean faceResultBean) {
+                Log.i(TAG, "accept: " + faceResultBean.toString());
             }
         });
     }
@@ -129,8 +129,8 @@ public class FaceActivity extends AppCompatActivity {
         options.put("top_num", path.size());
         face.verifyUser("uid1", path, options, new Consumer<FaceResultBean>() {
             @Override
-            public void apply(FaceResultBean faceResultBean) {
-                Log.i(TAG, "apply: " + faceResultBean.toString());
+            public void accept(FaceResultBean faceResultBean) {
+                Log.i(TAG, "accept: " + faceResultBean.toString());
             }
         });
     }
@@ -144,8 +144,8 @@ public class FaceActivity extends AppCompatActivity {
         options.put("face_top_num", 10);
         face.identifyUser("group1", path, options, new Consumer<IdentifyResultBean>() {
             @Override
-            public void apply(IdentifyResultBean identifyResultBean) {
-                Log.i(TAG, "apply: " + identifyResultBean.toString());
+            public void accept(IdentifyResultBean identifyResultBean) {
+                Log.i(TAG, "accept: " + identifyResultBean.toString());
             }
         });
     }
@@ -153,8 +153,8 @@ public class FaceActivity extends AppCompatActivity {
     public void getUser(View view) {
         face.getUser("uid1", new Consumer<FaceUserBean>() {
             @Override
-            public void apply(FaceUserBean faceUserBean) {
-                Log.i(TAG, "apply: " + faceUserBean.toString());
+            public void accept(FaceUserBean faceUserBean) {
+                Log.i(TAG, "accept: " + faceUserBean.toString());
             }
         });
     }
@@ -165,8 +165,8 @@ public class FaceActivity extends AppCompatActivity {
         options.put("num", 10);
         face.getGroupList(options, new Consumer<GroupListBean>() {
             @Override
-            public void apply(GroupListBean groupListBean) {
-                Log.i(TAG, "apply: " + groupListBean.toString());
+            public void accept(GroupListBean groupListBean) {
+                Log.i(TAG, "accept: " + groupListBean.toString());
             }
         });
     }
@@ -177,8 +177,8 @@ public class FaceActivity extends AppCompatActivity {
         options.put("num", 10);
         face.getGroupUsers("group1", options, new Consumer<GroupUserBean>() {
             @Override
-            public void apply(GroupUserBean groupUserBean) {
-                Log.i(TAG, "apply: " + groupUserBean.toString());
+            public void accept(GroupUserBean groupUserBean) {
+                Log.i(TAG, "accept: " + groupUserBean.toString());
             }
         });
     }
@@ -186,8 +186,8 @@ public class FaceActivity extends AppCompatActivity {
     public void addGroupUser(View view) {
         face.addGroupUser("group1", "uid1", new Consumer<FaceResultBean>() {
             @Override
-            public void apply(FaceResultBean faceResultBean) {
-                Log.i(TAG, "apply: " + faceResultBean.toString());
+            public void accept(FaceResultBean faceResultBean) {
+                Log.i(TAG, "accept: " + faceResultBean.toString());
             }
         });
     }
@@ -195,8 +195,8 @@ public class FaceActivity extends AppCompatActivity {
     public void deleteGroupUser(View view) {
         face.deleteGroupUser("group1", "uid1", new Consumer<FaceResultBean>() {
             @Override
-            public void apply(FaceResultBean faceResultBean) {
-                Log.i(TAG, "apply: " + faceResultBean.toString());
+            public void accept(FaceResultBean faceResultBean) {
+                Log.i(TAG, "accept: " + faceResultBean.toString());
             }
         });
     }
