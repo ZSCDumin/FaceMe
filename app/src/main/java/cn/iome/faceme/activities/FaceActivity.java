@@ -110,7 +110,7 @@ public class FaceActivity extends AppCompatActivity {
     /**
      * A safe way to get an instance of the Camera object.
      */
-    public static Camera getCameraInstance() {
+    private static Camera getCameraInstance() {
         Camera c = null;
         int numberOfCameras = Camera.getNumberOfCameras();
         Log.i(TAG, "numberOfCameras: " + numberOfCameras);
@@ -181,7 +181,7 @@ public class FaceActivity extends AppCompatActivity {
     /**
      * check auto focus
      */
-    public static boolean isAutoFocusSupported(Camera.Parameters params) {
+    private static boolean isAutoFocusSupported(Camera.Parameters params) {
         List<String> modes = params.getSupportedFocusModes();
         return modes.contains(Camera.Parameters.FOCUS_MODE_AUTO);
     }
@@ -199,7 +199,6 @@ public class FaceActivity extends AppCompatActivity {
                         FileOutputStream fos = new FileOutputStream(pictureFile);
                         Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
                         bitmap.compress(Bitmap.CompressFormat.JPEG, 80, fos);
-                        fos.flush();
                         fos.close();
                         Log.i(TAG, "mCurrentPhotoPath: " + mCurrentPhotoPath);
                         recognize();
@@ -224,9 +223,14 @@ public class FaceActivity extends AppCompatActivity {
             @Override
             public void accept(RecognizeBean recognizeBean) {
                 statusBar.setVisibility(View.INVISIBLE);
+                List<RecognizeBean.ResultBean> result = recognizeBean.getResult();
+                if(result == null || result.size() == 0){
+                    cameraPreview.startPreviewDisplay();
+                    return;
+                }
                 RecognizeBean.ResultBean r = recognizeBean.getResult().get(0);
                 Log.i(TAG, "accept: " + recognizeBean.toString());
-                UIUtil.showDialog(FaceActivity.this, "人脸识别结果: ", " gender: " + r.getGender() + ",\n age: " + r.getAge() + ",\n beauty: " + r.getBeauty() + ",\n glasses: " + r.getGlasses(), "确定", "取消", true, new Consumer<DialogInterface>() {
+                UIUtil.showDialog(FaceActivity.this, "人脸识别结果: ", " gender: " + r.getGender() + ",\n age: " + r.getAge() + ",\n beauty: " + r.getBeauty() + ",\n glasses: " + r.getGlasses(), "确定", "取消", false, new Consumer<DialogInterface>() {
                     @Override
                     public void accept(DialogInterface dialogInterface) {
                         cameraPreview.startPreviewDisplay();
@@ -236,7 +240,7 @@ public class FaceActivity extends AppCompatActivity {
         });
     }
 
-    public File createImageFile(Context context) throws IOException {
+    private File createImageFile(Context context) throws IOException {
         // Create an image file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.SIMPLIFIED_CHINESE).format(new Date());
         String imageFileName = "JPEG_" + timeStamp + "_";
@@ -251,7 +255,7 @@ public class FaceActivity extends AppCompatActivity {
         return image;
     }
 
-    public static void followScreenOrientation(Context context, Camera camera){
+    private static void followScreenOrientation(Context context, Camera camera){
         final int orientation = context.getResources().getConfiguration().orientation;
         if(orientation == Configuration.ORIENTATION_LANDSCAPE) {
             camera.setDisplayOrientation(180);
