@@ -26,13 +26,12 @@ import java.util.concurrent.Executors
  */
 class FaceManager private constructor() {
     private val threadPool: ExecutorService
-    private val client: AipFace
+    private val client: AipFace = AipFace(Constants.APP_ID, Constants.API_KEY, Constants.SECRET_KEY)
     private val gson: Gson
     private val handler: Handler
 
     init {
         // 初始化一个FaceClient
-        client = AipFace(Constants.APP_ID, Constants.API_KEY, Constants.SECRET_KEY)
         // 可选：设置网络连接参数
         client.setConnectionTimeoutInMillis(2000)//建立连接的超时时间（单位：毫秒）
         client.setSocketTimeoutInMillis(60000)//通过打开的连接传输数据的超时时间（单位：毫秒）
