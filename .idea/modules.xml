@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/FaceMe.iml" filepath="$PROJECT_DIR$/FaceMe.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/fakotlin/fakotlin.iml" filepath="$PROJECT_DIR$/fakotlin/fakotlin.iml" />
     </modules>
   </component>
 </project>
