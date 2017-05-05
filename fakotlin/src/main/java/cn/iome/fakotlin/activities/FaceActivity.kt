@@ -61,7 +61,7 @@ class FaceActivity : AppCompatActivity() {
     private fun takeCamera() {
         mCamera = chooseCamera()
         Log.i(TAG, "mCamera: " + mCamera!!)
-        cameraPreview = CameraView(this, mCamera)
+        cameraPreview = CameraView(this, mCamera!!)
         cameraPreview!!.setBackgroundResource(R.mipmap.face_recog_bg)
         val preview = findViewById(R.id.camera_preview) as RelativeLayout
         preview.addView(cameraPreview)
