@@ -617,8 +617,10 @@ class FaceManager private constructor() {
             val fis = FileInputStream(imagePath)
             val baos = ByteArrayOutputStream()
             val buffer = ByteArray(1024)
-            while (fis.read(buffer) != -1) {
-                baos.write(buffer, 0, buffer.size)
+            var length : Int
+            while (true) {
+                length = fis.read(buffer)
+                if(length != -1) baos.write(buffer, 0, length) else break
             }
             bytes = baos.toByteArray()
             fis.close()

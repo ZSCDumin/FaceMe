@@ -27,7 +27,7 @@ class DemoActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         getPermission()
-        face = FaceManager.Factory.creat()
+        face = FaceManager.creat()
     }
 
     fun takePhoto() {

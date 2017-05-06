@@ -34,7 +34,6 @@ import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 
-@Suppress("DEPRECATION")
 /**
  * Created by haoping on 17/4/14.
  * TODO
@@ -50,7 +49,7 @@ class FaceActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         setContentView(R.layout.take_main)
-        face = FaceManager.Factory.creat()
+        face = FaceManager.creat()
         takeCamera()
     }
 
