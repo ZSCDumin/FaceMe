@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package cn.iome.fakotlin.view
 
 import android.content.Context
@@ -10,6 +12,7 @@ import android.view.SurfaceView
 
 import java.io.IOException
 
+@Suppress("DEPRECATION")
 /**
  * Created by haoping on 17/5/3.
  * TODO
@@ -42,13 +45,6 @@ class CameraView : SurfaceView, SurfaceHolder.Callback {
         Log.d(TAG, "Restart preview display[SURFACE-CHANGED]")
         stopPreviewDisplay()
         startPreviewDisplay(mSurfaceHolder!!)
-    }
-
-    fun setCamera(camera: Camera) {
-        mCamera = camera
-        val params = mCamera!!.parameters
-        params.focusMode = Camera.Parameters.FOCUS_MODE_AUTO
-        params.sceneMode = Camera.Parameters.SCENE_MODE_BARCODE
     }
 
     private fun startPreviewDisplay(holder: SurfaceHolder) {

@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package cn.iome.fakotlin.activities
 
 import android.Manifest
@@ -6,13 +8,11 @@ import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.hardware.Camera
 import android.os.Bundle
 import android.os.Environment
-import android.provider.MediaStore
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
@@ -34,6 +34,7 @@ import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 
+@Suppress("DEPRECATION")
 /**
  * Created by haoping on 17/4/14.
  * TODO
@@ -68,25 +69,17 @@ class FaceActivity : AppCompatActivity() {
         statusBar = findViewById(R.id.status) as ProgressBar
     }
 
-    private fun dispatchTakePictureIntent() {
-        val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        if (takePictureIntent.resolveActivity(packageManager) != null) {
-            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE)
-        }
-    }
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == Activity.RESULT_OK) {
             val extras = data.extras
-            val imageBitmap = extras.get("data") as Bitmap
+            extras.get("data") as Bitmap
         }
     }
 
     /**
      * onClick button
-     * @param view view
      */
-    fun capture(view: View) {
+    fun capture() {
         if (checkCameraHardware(this)) {
             mCamera!!.takePicture(null, null, mPicture)
         }
@@ -114,54 +107,27 @@ class FaceActivity : AppCompatActivity() {
     }
 
     /**
-     * This rewrites
-     */
-    private fun openFrontFacingCameraGingerbread(): Camera? {
-        var cameraCount = 0
-        var cam: Camera? = null
-        val cameraInfo = Camera.CameraInfo()
-        cameraCount = Camera.getNumberOfCameras()
-        for (camIdx in 0..cameraCount - 1) {
-            Camera.getCameraInfo(camIdx, cameraInfo)
-            if (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
-                try {
-                    cam = Camera.open(camIdx)
-                } catch (e: RuntimeException) {
-                    Log.e(TAG, "Camera failed to open: " + e.localizedMessage)
-                }
-
-            }
-        }
-
-        return cam
-    }
-
-
-    /**
      * Check if this device has a camera
      */
     private fun checkCameraHardware(context: Context): Boolean {
         return context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA)
     }
 
-    private val mPicture = Camera.PictureCallback { data, camera ->
+    private val mPicture = Camera.PictureCallback { data, _ ->
         val pictureFile: File?
         try {
             pictureFile = createImageFile(this@FaceActivity)
-            if (pictureFile != null) {
-                try {
-                    val fos = FileOutputStream(pictureFile)
-                    val bitmap = BitmapFactory.decodeByteArray(data, 0, data.size)
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 80, fos)
-                    fos.close()
-                    Log.i(TAG, "mCurrentPhotoPath: " + mCurrentPhotoPath!!)
-                    recognize()
-                } catch (e: FileNotFoundException) {
-                    Log.d(TAG, "File not found: " + e.message)
-                } catch (e: IOException) {
-                    Log.d(TAG, "Error accessing file: " + e.message)
-                }
-
+            try {
+                val fos = FileOutputStream(pictureFile)
+                val bitmap = BitmapFactory.decodeByteArray(data, 0, data.size)
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 80, fos)
+                fos.close()
+                Log.i(TAG, "mCurrentPhotoPath: " + mCurrentPhotoPath!!)
+                recognize()
+            } catch (e: FileNotFoundException) {
+                Log.d(TAG, "File not found: " + e.message)
+            } catch (e: IOException) {
+                Log.d(TAG, "Error accessing file: " + e.message)
             }
         } catch (e: IOException) {
             e.printStackTrace()
@@ -174,17 +140,17 @@ class FaceActivity : AppCompatActivity() {
         options.put("max_face_num", "5")
         options.put("face_fields", "age,beauty,expression,faceshape,gender,glasses,race,qualities")
         face!!.faceRecognizeWithPath(mCurrentPhotoPath!!, options, object : Consumer<RecognizeBean> {
-            override fun accept(recognizeBean: RecognizeBean) {
+            override fun accept(t: RecognizeBean) {
                 statusBar!!.visibility = View.INVISIBLE
-                val result = recognizeBean.result
-                if (result == null || result.size == 0) {
+                val result = t.result
+                if (result == null || result.isEmpty()) {
                     cameraPreview!!.startPreviewDisplay()
                     return
                 }
-                val r = recognizeBean.result!![0]
-                Log.i(TAG, "accept: " + recognizeBean.toString())
+                val r = t.result!![0]
+                Log.i(TAG, "accept: " + t.toString())
                 UIUtil.showDialog(this@FaceActivity, "人脸识别结果: ", " gender: " + r.gender + ",\n age: " + r.age + ",\n beauty: " + r.beauty + ",\n glasses: " + r.glasses, "确定", "取消", false, object : Consumer<DialogInterface> {
-                    override fun accept(dialogInterface: DialogInterface) {
+                    override fun accept(t: DialogInterface) {
                         cameraPreview!!.startPreviewDisplay()
                     }
                 })
@@ -238,7 +204,7 @@ class FaceActivity : AppCompatActivity() {
         when (requestCode) {
             PERMISSIONS_REQUEST_CAMERA -> {
                 // If request is cancelled, the result arrays are empty.
-                if (grantResults.size > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 
                     // permission was granted, yay! Do the
                     // contacts-related task you need to do.
@@ -260,42 +226,5 @@ class FaceActivity : AppCompatActivity() {
         private val PERMISSIONS_REQUEST_CAMERA = 1
         private val REQUEST_IMAGE_CAPTURE = 2
 
-        /**
-         * A safe way to get an instance of the Camera object.
-         */
-        private //the frontal camera has id = "1", and the back camera id = "0"
-                // attempt to get a Camera instance
-                // Camera is not available (in use or does not exist)
-                // returns null if camera is unavailable
-        val cameraInstance: Camera
-            get() {
-                var c: Camera? = null
-                val numberOfCameras = Camera.getNumberOfCameras()
-                Log.i(TAG, "numberOfCameras: " + numberOfCameras)
-
-                try {
-                    c = Camera.open(0)
-                } catch (e: Exception) {
-                }
-
-                return c!!
-            }
-
-        /**
-         * check auto focus
-         */
-        private fun isAutoFocusSupported(params: Camera.Parameters): Boolean {
-            val modes = params.supportedFocusModes
-            return modes.contains(Camera.Parameters.FOCUS_MODE_AUTO)
-        }
-
-        private fun followScreenOrientation(context: Context, camera: Camera) {
-            val orientation = context.resources.configuration.orientation
-            if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                camera.setDisplayOrientation(180)
-            } else if (orientation == Configuration.ORIENTATION_PORTRAIT) {
-                camera.setDisplayOrientation(90)
-            }
-        }
     }
 }

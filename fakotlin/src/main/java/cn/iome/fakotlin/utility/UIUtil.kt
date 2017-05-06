@@ -16,8 +16,8 @@ object UIUtil {
         val builder = AlertDialog.Builder(context)
         builder.setTitle(title)
         builder.setMessage(message)
-        builder.setPositiveButton(positive) { dialog, which -> callback.accept(dialog) }
-        builder.setNegativeButton(negative) { dialog, which -> callback.accept(dialog) }
+        builder.setPositiveButton(positive) { dialog, _ -> callback.accept(dialog) }
+        builder.setNegativeButton(negative) { dialog, _ -> callback.accept(dialog) }
         val alertDialog = builder.create()
         alertDialog.setCanceledOnTouchOutside(canceledOnTouchOutside)
         alertDialog.show()
