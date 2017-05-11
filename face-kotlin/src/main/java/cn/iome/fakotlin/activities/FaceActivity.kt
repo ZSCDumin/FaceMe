@@ -49,7 +49,7 @@ class FaceActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         setContentView(R.layout.take_main)
-        face = FaceManager.creat()
+        face = FaceManager.create()
         takeCamera()
     }
 

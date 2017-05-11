@@ -666,7 +666,7 @@ class FaceManager private constructor() {
     companion object Factory{
 
         private val TAG = FaceManager::class.java.simpleName
-        fun creat(): FaceManager = FaceManager()
+        fun create(): FaceManager = FaceManager()
 
     }
 
